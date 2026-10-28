@@ -1,6 +1,6 @@
 # Validation and release status
 
-28 October 2026. Working local implementation; no deployment has been performed. The full MVP has not been signed off while mandatory device and release evidence remains open.
+28 October 2026. Public test version: https://snap-alliance-manager.snap-alliance-manager.workers.dev. The full MVP has not been signed off while mandatory device, Web Push and release evidence remains open.
 
 ## Verified locally
 
@@ -11,7 +11,7 @@
 | Vitest | 79 tests passed: 34 domain, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API and 12 OCR/cancellation/column/grouping checks. |
 | Playwright | 42 distinct checks passed across 1440×900, 768×1024 and 390×844 on compiled local Cloudflare assets: 39 full-suite passes plus the corrected three conflict checks in the final 12-image-check run. Image checks include zoom before/after recognition, capture-to-total reading, clipboard, grouping and explicit conflict choice. Notification state and screen sharing are simulated; OCR uses the real packaged engine. |
 | Deferred P2 browser tests | Three sync-test skips; automatic sync is disabled in the shipped MVP |
-| Cloudflare package | Dry run passed; no upload/deployment |
+| Cloudflare publication | Production Worker/static assets published; D1 schema prepared in a new empty database. HTTPS app, manifest, OCR worker/model and public configuration returned 200. No player data was uploaded. |
 | Visual inspection | 0 failures; one small-text warning for secondary copy and metadata |
 | Push runtime probe | Real local Workerd produced an AES128GCM payload; zero external network requests |
 
@@ -64,18 +64,18 @@ Examples of partial coverage that need stronger checks:
 
 | Priority and requirement | Remaining evidence or setup |
 | --- | --- |
-| P0, RF10 / AC54 | Stable HTTPS deployment, real D1 binding, production origin and required secrets. The private GitHub repository stores source; it is not a deployed application. |
+| P0, RF10 / AC54 | HTTPS deployment, D1 binding and production origin are configured. Real installation checks remain open. |
 | P0, RF04 / AC55, AC90 | Measure total-column/name recognition, omitted rows and review time on at least 20 representative real game screenshots. Verify multi-image selection and image clipboard actions on physical target devices. |
 | P1, RF23 / AC56 | Verify native game-window selection, scrolling and sharing termination in supported PC browsers. Simulated frames prove the local flow, not capture of the installed game. |
 | P0, RF07 / AC35, AC70, AC72 | File selection, saving and restoration on real iOS, Android and Windows devices, including local-only transfer and permission behavior. |
 | P2, RF08 / AC28; not an MVP gate | Automatic synchronization between physical PC/mobile devices against the deployed private service; browser contexts are the current evidence. |
 | P0, RF12 / ESC04 | Record actual Workers CPU and D1 reads/writes, plus the weekly reminder peak, without player data. The current scheduler processes at most ten due reminders per minute; queue delay and expiry need a load test and any required adjustment. |
 | P0, AC53 | Finish 360 px, keyboard/touch and 200% zoom checks; review secondary text legibility and accessibility. Existing viewport checks are 390/768/1440 px. |
-| P1, RF16 / AC41–AC50, AC65 | Configure production Web Push and verify real receipt with the app closed, revocation, device selection, duplicate suppression, expiry and the click destination. |
+| P1, RF16 / AC41–AC50, AC65 | Production Web Push credential creation awaits explicit authorization. Then verify real receipt with the app closed, revocation, device selection, duplicate suppression, expiry and the click destination. |
 | P1, RF17 / AC76 | Import the generated file into target calendar clients and verify the actual recurrence/alarm, including changes and duplicate-event handling. |
 | PLANO stage 6 | Run a real collection/reset pilot, verify the contribution column, consult history afterward, restore a backup and check reminders. Automatic sync belongs to P2. |
 
-The next MVP work is broader real-image OCR validation and the remaining local acceptance checks, followed by release/device evidence. The reminder corrections have regression tests. Automatic sync/remote conflicts, conditional Ko-fi paid access, saved-video import, light mode, FUT01–FUT03, other-game support and localization remain P2; AC29 remains retired.
+The next MVP work is broader real-image OCR validation, the remaining local acceptance checks and physical-device evidence. The test version is already public. The reminder corrections have regression tests. Automatic sync/remote conflicts, conditional Ko-fi paid access, saved-video import, light mode, FUT01–FUT03, other-game support and localization remain P2; AC29 remains retired.
 
 ## Implemented local paths
 
@@ -115,8 +115,8 @@ The calendar alternative has no weekly calls to this app's API after import.
 
 | Required evidence | Current status |
 | --- | --- |
-| Stable HTTPS deployment and real D1 binding | Not started; configuration still contains the local placeholder database ID |
-| Production VAPID secrets and real contact address | Local development keys exist; production setup not performed |
+| Stable HTTPS deployment and real D1 binding | Published; production configuration is separate from local development |
+| Production VAPID secrets and real contact address | Ko-fi contact URI configured; production keys are absent and their creation requires explicit authorization. Local keys remain separate. |
 | Workers CPU, D1 rows and peak reminder delivery | Local behavior checked; production budget/load measurement pending |
 | Installation on real iOS, Android and Windows devices | Browser rendering checked; native installation pending |
 | Push receipt with the PWA closed, permission revocation and expiry | Scheduler logic/crypto checked; actual delivery pending |
@@ -163,3 +163,11 @@ The first reader omitted many zero rows. The corrected reader prepares text cont
 Repeated names are grouped within each collection, without assigning a player identity or merging merely similar names. Original readings and image/time links survive backup. Conflicting totals require an explicit choice or manual correction before a confirmed result is saved. The UI uses the game's fixed format and offers image zoom, fit, actual size and panning both before reading and in the review.
 
 Stylized names and ambiguous letters still need manual verification. Four screenshots from two weeks are useful regression evidence, not the planned 20-image representative accuracy study or proof of native game-window capture. No claim of perfect name recognition is made.
+
+## Public test deployment
+
+The production environment was published on 28 October 2026 at https://snap-alliance-manager.snap-alliance-manager.workers.dev. Current deployment version: ed5820d2-ee82-4a88-af3b-78491629866b. Both D1 migrations were applied to a newly created empty database. Local database/origin settings remain unchanged. No billing upgrade or real player import was performed.
+
+Read-only HTTP verification returned 200 for the application, PWA manifest, OCR worker, OCR language model and public configuration. CSP retains same-origin loading and WebAssembly support. No production test records or push subscriptions were created.
+
+Production Web Push credentials were not created: that persistent credential setup needs separate authorization. The public configuration reports pushAvailable=false, and calendar export remains available. The prepared setup helper is not executed by builds/deploys and refuses to replace existing keys. Native notifications, physical-device installation, calendar-client behavior and load/CPU measurement remain pending.

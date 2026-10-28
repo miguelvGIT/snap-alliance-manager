@@ -1,6 +1,6 @@
 # Gestor de alianças Marvel Snap — plano de implementação
 
-Versão consolidada: 28/10/2026. Estado: especificação do produto; implementação local iniciada. Consultar VALIDACAO.md para verificações e pendências.
+Versão consolidada: 28/10/2026. Estado: especificação do produto; versão de testes publicada. Consultar VALIDACAO.md para verificações e pendências.
 
 Este ficheiro define o produto, as decisões técnicas e a sequência de trabalho. TESTES_ACEITACAO.md contém os cenários verificáveis. ARRANQUE_CODEX.md é o pedido para iniciar o desenvolvimento e remete para estas especificações, sem as duplicar.
 
@@ -346,9 +346,9 @@ Os trabalhos FUT01–FUT03 são futuros e não autorizam introduzir custos ou fo
 | 5 | Lembretes e calendário ESC05. | Receção com a app fechada em dispositivos autorizados e ficheiro de calendário validado nos clientes alvo. |
 | 6 | Publicação HTTPS e piloto de uma semana real. | Casos P0/P1 aprovados, um reset observado, backup restaurado e verificação de privacidade/acessibilidade. |
 
-O MVP está concluído quando cumpre os requisitos P0/P1 e testes aplicáveis, com recolha por imagens e transferência manual completa. OCR local e captura assistida compatível fazem parte destes critérios; precisão com capturas reais e compatibilidade têm de ser verificadas. A sincronização automática, importação de vídeo e FUT01–FUT03 são P2. A implementação e os testes locais estão descritos em VALIDACAO.md. Nenhum deploy foi executado.
+O MVP está concluído quando cumpre os requisitos P0/P1 e testes aplicáveis, com recolha por imagens e transferência manual completa. OCR local e captura assistida compatível fazem parte destes critérios; precisão com capturas reais e compatibilidade têm de ser verificadas. A sincronização automática, importação de vídeo e FUT01–FUT03 são P2. A implementação e os testes estão descritos em VALIDACAO.md. A versão de testes foi publicada em https://snap-alliance-manager.snap-alliance-manager.workers.dev. Credenciais de produção para Web Push ainda aguardam autorização; exportação de calendário disponível.
 
-O URL de apoio já foi confirmado: https://ko-fi.com/tequilasunsett. Antes do lançamento ainda é necessário fornecer capturas para a prova de OCR, coluna exata dos pontos e versões/dispositivos/calendários suportados. A falta destas amostras não impede começar o núcleo local.
+O URL de apoio já foi confirmado: https://ko-fi.com/tequilasunsett. Quatro capturas reais de duas semanas foram verificadas localmente com a coluna Total. Continuam pendentes o corpus mais alargado e a validação nos dispositivos/calendários alvo.
 
 ## 11. Trabalho com o Codex
 

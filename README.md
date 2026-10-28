@@ -2,6 +2,8 @@
 
 A private, installable dashboard for Marvel Snap alliance managers. The interface is English-only for this version. Player names and notes stay as entered; dates and times follow the device locale and time zone.
 
+Public test version: https://snap-alliance-manager.snap-alliance-manager.workers.dev. Each visitor starts with their own local data; supplied game screenshots and private test records are not published.
+
 Save weekly scores, review missed minimums, and preserve history when names change. The app tracks an existing alliance; it does not create one in the game.
 
 ## Run locally
@@ -78,8 +80,15 @@ PLANO.md and TESTES_ACEITACAO.md retain the business specification and acceptanc
 
 ## Publication
 
-Nothing has been deployed. A release needs a Cloudflare Free account/D1 binding, stable HTTPS origin, VAPID secrets and a real contact address. Serve assets directly and route only `/api/*` to the Worker. Never enable paid billing automatically.
+The test version was published to Cloudflare on 28 October 2026. The `production` environment contains its D1 binding and HTTPS origin; local configuration stays separate. Deploy updates after validation with:
 
-The scheduler claims bounded batches of ten reminders per minute. Measure peak delivery and actual Workers CPU before a public Web Push rollout. The local crypto benchmark does not measure Cloudflare production CPU.
+```powershell
+pnpm build
+pnpm exec wrangler deploy --env production
+```
+
+Serve assets directly and route only `/api/*` to the Worker. No paid billing was activated. Production Web Push keys are not configured; the calendar export remains available. Creating production credentials needs separate authorization. After that approval, `node scripts/configure-production-push.mjs` creates keys through stdin, stores them only in Cloudflare and preserves existing keys. It is never run by the build or deploy commands.
+
+The deployed scheduler is configured every minute, with bounded batches of ten reminders. Web Push stays unavailable until its credentials are configured. Measure peak delivery and actual Workers CPU before a wider push rollout. The local crypto benchmark does not measure Cloudflare production CPU.
 
 Do not publish the local push probe, real backups, `.dev.vars`, traces or personal data.

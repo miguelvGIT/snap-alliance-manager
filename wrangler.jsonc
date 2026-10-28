@@ -2,32 +2,43 @@
   "name": "snap-alliance-manager",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-27",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": [
-      "/api/*"
-    ]
+    "run_worker_first": ["/api/*"],
   },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "alliance-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "worker/migrations"
-    }
+      "database_id": "10789b2f-165d-4bb8-929f-838ac9032259",
+      "migrations_dir": "worker/migrations",
+    },
   ],
   "triggers": {
-    "crons": [
-      "* * * * *"
-    ]
+    "crons": ["* * * * *"],
   },
   "vars": {
     "APP_ORIGIN": "http://127.0.0.1:5173",
-    "VAPID_SUBJECT": "mailto:replace-before-launch@example.invalid"
-  }
+    "VAPID_SUBJECT": "mailto:replace-before-launch@example.invalid",
+  },
+  "env": {
+    "production": {
+      "name": "snap-alliance-manager",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "alliance-db",
+          "database_id": "10789b2f-165d-4bb8-929f-838ac9032259",
+          "migrations_dir": "worker/migrations",
+        },
+      ],
+      "vars": {
+        "APP_ORIGIN": "https://snap-alliance-manager.snap-alliance-manager.workers.dev",
+        "VAPID_SUBJECT": "https://ko-fi.com/tequilasunsett",
+      },
+    },
+  },
 }
