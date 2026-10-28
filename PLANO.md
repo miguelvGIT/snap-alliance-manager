@@ -17,7 +17,7 @@ Ajudar gestores de alianças a preservar a contribuição semanal dos jogadores 
 | Dados | Persistência no próprio dispositivo. Enviar tabelas para um serviço remoto apenas após ativação explícita de sincronização. |
 | Utilizadores | Nenhum teto de utilizadores, licença por pessoa, lista de espera ou validação central de vagas para uso local. |
 | Transferência | Exportação/importação completa por ficheiro no MVP, sempre disponível e independente da nuvem. |
-| Sincronização | Automática opcional; preferir emparelhamento sem registo. Conta convencional apenas se necessária para esse modo. |
+| Sincronização | MVP por exportação/importação manual gratuita. Automática em P2; se implicar custos de chamadas/serviço, acesso pago via Ko-fi com validação no servidor. |
 | Reset | Terça-feira às 19:00 UTC, fixo e não editável. Converter para a hora e a data locais. |
 | Semanas | Identificadas pelo intervalo de datas no formato local; em Portugal: 20/10/26 - 27/10/26. |
 | Recolha | Introdução/colagem manual garantida. Automatização depende de viabilidade demonstrada. |
@@ -42,7 +42,6 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 | RF05 | Registar a data/hora de recolha automaticamente quando determinável ou manualmente; conservar separadamente a introdução/importação. |
 | RF06 | Consultar todo o histórico. No início, mostrar nome no jogo, contacto social, incumprimentos, média e pontos das últimas oito semanas por defeito. |
 | RF07 | Exportar e importar todos os dados estruturados, com pré-visualização e confirmação antes de substituir dados existentes. |
-| RF08 | Oferecer sincronização automática opcional, independente do modo local e da transferência por ficheiro. |
 | RF09 | Disponibilizar ligação externa «Support the project» para https://ko-fi.com/tequilasunsett, confirmado pelo criador. |
 | RF10 | Publicar em HTTPS e permitir instalar a PWA nos dispositivos alvo. |
 | RF11 | Não impor limite de utilizadores no uso local nem bloquear operações locais por quota ou falha dos serviços remotos. |
@@ -58,10 +57,15 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 | RF15 | Destacar jogadores com pelo menos dois incumprimentos contabilizados, usando texto além de cor. |
 | RF16 | Enviar lembrete antes do reset, com antecedência configurável e autorização por dispositivo. |
 | RF17 | Permitir exportar um lembrete de calendário como caminho independente do envio remoto. |
-| RF18 | Preservar revisões e apresentar conflitos de sincronização para resolução explícita. |
 | RF19 | Pesquisar por nome atual, nome antigo ou contacto social e ordenar os indicadores. |
 
 ### 2.3. P2 — futuro
+
+| ID | Requisito futuro |
+| --- | --- |
+| RF08 | Sincronização automática opcional. O protótipo existente fica desativado no MVP. |
+| RF18 | Preservar e resolver explicitamente conflitos da sincronização automática. As revisões locais continuam obrigatórias no MVP. |
+| RF21 | Se a sincronização automática implicar custos de chamadas/serviço, restringir o acesso pago via Ko-fi, com direito de acesso validado no servidor. O uso local e a transferência manual permanecem gratuitos. |
 
 - OCR local para preencher capturas, se não passar a integrar a primeira versão após prova de conceito.
 - Captura assistida da janela do jogo no PC e importação de vídeo.
@@ -178,9 +182,11 @@ Os ficheiros multimédia servem de referência/processamento local e não são e
 
 Este fluxo não utiliza D1 para as tabelas nem a API de sincronização. Alterações posteriores exigem nova transferência ou sincronização automática.
 
-### 5.2. Sincronização automática — opcional para o utilizador
+### 5.2. Sincronização automática — P2
 
-O MVP deve permitir ativá-la separadamente. Preferir «Ligar outro dispositivo» por convite temporário QR/código, com confirmação no dispositivo existente. Autenticar dispositivos sem obrigar ao registo de pessoa. Validar expiração, utilização única, limitação de tentativas, isolamento, revogação e recuperação.
+Não faz parte da entrega do MVP nem condiciona a sua aprovação. O protótipo fica oculto na interface e os endpoints ficam bloqueados na versão distribuída; apenas uma configuração explícita de desenvolvimento local permite experimentá-lo. A transferência por ficheiro é o caminho entre dispositivos no MVP.
+
+Numa versão P2, permitir ativá-la separadamente. Preferir «Ligar outro dispositivo» por convite temporário QR/código, com confirmação no dispositivo existente. Autenticar dispositivos sem obrigar ao registo de pessoa. Validar expiração, utilização única, limitação de tentativas, isolamento, revogação e recuperação.
 
 O serviço conserva alterações para os dispositivos não terem de estar ativos ao mesmo tempo. Só copiar os dados após ativação explícita. Não copiar sessões entre dispositivos nem usar um código curto como segredo permanente. Avaliar proteção dos dados e gestão de chaves na prova de conceito, sem prometer cifragem de ponta a ponta ainda não demonstrada.
 
@@ -197,6 +203,16 @@ Política inicial para limitar pedidos:
 A sincronização não tem garantia de execução contínua com a PWA fechada. Num teste controlado com ambas as sessões visíveis, a propagação deve ocorrer no ciclo seguinte, até 75 segundos. O orçamento concreto deve ser medido, incluindo todos os dispositivos da pessoa.
 
 Uma conta convencional só pode ser exigida para este modo se for necessária à solução validada. Recuperação sem conta usa outro dispositivo autorizado ou chave própria; sem ambos, não prometer recuperação por email.
+
+### 5.3. Acesso pago via Ko-fi — P2 condicionado a custos
+
+Se existirem custos de chamadas/serviço da sincronização automática, disponibilizá-la apenas através de acesso pago no Ko-fi do projeto. Preço, modalidade e duração ficam por definir antes dessa entrega; não criar uma oferta ou cobrar agora. Uma contribuição de apoio genérica não prova, por si só, a compra desse acesso.
+
+Verificar o pagamento e o direito de acesso no servidor, incluindo validade e revogação; não desbloquear apenas por abrir o link Ko-fi ou guardar um sinalizador no dispositivo. Proteger leitura, escrita, associação e recuperação do espaço remoto. Expiração do acesso não apaga o histórico local nem impede exportar/importar.
+
+O Ko-fi disponibiliza webhooks de pagamentos, mas não comunica atualmente o fim de uma subscrição. A implementação futura terá de definir validade por período pago e tratamento de cancelamentos/reembolsos antes de anunciar acesso recorrente. [Documentação oficial dos webhooks Ko-fi](https://help.ko-fi.com/hc/en-us/articles/360004162298-Does-Ko-fi-have-an-API-or-webhook). Segredos e dados de pagamento ficam fora do frontend, backups e logs.
+
+O MVP não integra pagamentos nem exige uma conta Ko-fi. O botão de apoio mantém-se independente das funcionalidades gratuitas.
 
 ## 6. Lembretes
 
@@ -233,7 +249,7 @@ Não criar uma subscrição remota de calendário para esta alternativa: isso vo
 | PWA | Manifesto, vite-plugin-pwa e service worker para instalação/receção de push. Não desenvolver cache para uso totalmente offline como objetivo. |
 | Dados locais | Dexie sobre IndexedDB, com migrações versionadas. |
 | Validação e ficheiros | Zod, JSON versionado e File API. |
-| Serviços remotos | Cloudflare Workers e D1 para sincronização ativada e lembretes; Web Push/VAPID. |
+| Serviços remotos | Cloudflare Workers e D1 para lembretes; Web Push/VAPID. Sincronização automática apenas numa versão P2. |
 | Publicação | Cloudflare Static Assets num endereço HTTPS estável. |
 | Verificação | Vitest, Playwright e ambiente local Wrangler/D1, com relógio/envio simuláveis. |
 
@@ -272,11 +288,11 @@ Servir assets diretamente, sem executar o Worker em todas as aberturas e sem con
 
 | Ecrã | Conteúdo e ações |
 | --- | --- |
-| Início | Meta, jogadores que precisam de atenção, estado dos dados/sincronização, tabela pedida, «Record scores» e apoio ao projeto. Sem cartão de destaque da hora do reset. |
+| Início | Meta, jogadores que precisam de atenção, estado dos dados locais, tabela pedida, «Record scores» e apoio ao projeto. Sem cartão de destaque da hora do reset. |
 | Registo semanal | Escolher intervalo local, introduzir/colar/rever, ver capturas e indicar momento/completude da recolha. Destacar nomes desconhecidos e não encontrados; permitir associação manual, mudança de nome, criação confirmada ou adiamento. Validar apenas depois da revisão. Dispensa abre o pedido de motivo. |
 | Histórico | Semanas por intervalo local; pontos, mínimos, motivos, recolhas, incompletude e revisões. |
 | Jogador | Nome atual/anteriores, contacto, participações, resultados e dispensas. Editar o nome manualmente com confirmação, mantendo o histórico. |
-| Definições | Mínimo/meta, reset só para consulta, lembretes/calendário, exportar/importar, última transferência e ligação opcional de dispositivos. |
+| Definições | Mínimo/meta, reset só para consulta, lembretes/calendário, exportar/importar, última transferência. Ligação automática de dispositivos apenas em P2. |
 
 No telemóvel, deslocação horizontal dentro da tabela e detalhe por jogador. Manter ações utilizáveis a 360 px, por toque e teclado. Distinguir zero, sem registo, parcial, dispensado, rascunho e conflito sem depender só de cor.
 
@@ -290,7 +306,7 @@ Esta secção é parte do MVP como preparação arquitetural e contrato de compo
 | --- | --- |
 | ESC01 | Separar domínio/base local, formato de transferência e transporte de sincronização. Criar um contrato pequeno para versões/operações, envio/receção e conflitos, sem construir uma plataforma genérica de plugins. |
 | ESC02 | Partilhar IDs, revisões e validação entre ficheiros e serviço remoto. Adicionar outro transporte não exige migrar os dados do utilizador nem reescrever cálculos/interface. |
-| ESC03 | Cumprir a política de chamadas da secção 5.2: lotes, diferenças, foco agrupado, verificação só enquanto visível e tentativas limitadas. |
+| ESC03 | No MVP, limitar e espaçar tentativas dos lembretes, sem pedidos de sincronização de pontos. A política de lotes/diferenças/foco da secção 5.2 aplica-se à futura sincronização P2. |
 | ESC04 | Medir chamadas, CPU, linhas lidas/escritas e pico de lembretes sem recolher dados pessoais. Quota remota esgotada mantém local/ficheiro disponíveis e não causa uma tempestade de repetições. |
 | ESC05 | Gerar o lembrete de calendário local da secção 6.2. Não depender de envio remoto semanal para esta alternativa. |
 | ESC06 | Não impor limite de utilizadores no produto nem mudar para plano pago automaticamente. Não apresentar estimativas de capacidade como garantias. |
@@ -317,15 +333,15 @@ Os trabalhos FUT01–FUT03 são futuros e não autorizam introduzir custos ou fo
 
 | Etapa | Entrega | Evidência necessária |
 | --- | --- | --- |
-| 0 | Provas dos riscos na PWA escolhida: persistência, ficheiros, ligação/conflitos, Web Push/calendário e amostras de OCR. | Observações reais e consumo medido. Teste de hardware indisponível permanece pendente. Não trocar a plataforma ou inventar acesso ao jogo. |
+| 0 | Provas dos riscos na PWA escolhida: persistência, ficheiros e Web Push/calendário. Ligação/conflitos e OCR são provas P2. | Observações reais e consumo medido. Teste de hardware indisponível permanece pendente. Não trocar a plataforma ou inventar acesso ao jogo. |
 | 1 | Identidade, semanas, mínimos e cálculos. | Limites do reset, datas locais, médias, dispensas e ausência de dados corretos. |
 | 2 | Registo, conferência de nomes, tabela inicial e histórico. | Uma semana pode ser registada/revista/consultada e corrigida; mudanças de nome manuais conservam o histórico e ausências não criam saídas ou zeros. |
 | 3 | Transferência manual e conservação. | Novo dispositivo recupera tudo sem conta/API de pontos; importação inválida/repetida/cancelada é segura. |
-| 4 | Sincronização automática opcional e preparação ESC01–ESC04. | Duas sessões autorizadas convergem, conflitos são preservados, orçamento é medido e transporte é separável. |
+| 4 | Preparação ESC01–ESC04 e recuperação de falhas dos lembretes. | Formato/IDs preservados e consumo medido. A sincronização automática e os seus conflitos são P2 e não bloqueiam o MVP. |
 | 5 | Lembretes e calendário ESC05. | Receção com a app fechada em dispositivos autorizados e ficheiro de calendário validado nos clientes alvo. |
 | 6 | Publicação HTTPS e piloto de uma semana real. | Casos P0/P1 aprovados, um reset observado, backup restaurado e verificação de privacidade/acessibilidade. |
 
-O MVP está concluído quando cumpre os requisitos P0/P1 e testes aplicáveis, sem tratar transferência manual como prova de sincronização automática. OCR/captura/vídeo e FUT01–FUT03 só contam como entregues quando implementados e verificados. A implementação e os testes locais estão descritos em VALIDACAO.md. Nenhum deploy foi executado.
+O MVP está concluído quando cumpre os requisitos P0/P1 e testes aplicáveis, com transferência manual completa. A sincronização automática é P2 e não é um critério de conclusão do MVP. OCR/captura/vídeo e FUT01–FUT03 só contam como entregues quando implementados e verificados. A implementação e os testes locais estão descritos em VALIDACAO.md. Nenhum deploy foi executado.
 
 O URL de apoio já foi confirmado: https://ko-fi.com/tequilasunsett. Antes do lançamento ainda é necessário fornecer capturas para a prova de OCR, coluna exata dos pontos e versões/dispositivos/calendários suportados. A falta destas amostras não impede começar o núcleo local.
 

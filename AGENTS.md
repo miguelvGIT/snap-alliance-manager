@@ -11,5 +11,6 @@
 - Keep real data, backups, credentials and secrets out of Git/logs. `.dev.vars` is ignored.
 - Tests use localhost, fictional data and local D1, never production.
 - Player IDs are internal. Never infer a rename, assignment or departure automatically.
+- Automatic sync and remote conflicts are P2; keep the prototype disabled in the shipped MVP. If future sync incurs service/call costs, require server-verified paid access through Ko-fi. Local use and file transfer stay free.
 - Full offline support, OCR/video and FUT01–FUT03 are outside this version.
 - Emulation does not prove native installation, real push receipt or a reset-week pilot.

@@ -38,10 +38,10 @@ Enter your existing alliance's name and minimum/target, then select **Start**. Y
 - **Record scores:** paste names and points, specify collection time, and review assignments. Unknown and missing names are highlighted separately. You confirm name changes and new players.
 - **Overview:** averages and missed minimums use all eligible history; the table shows eight recent weeks. A missing score stays distinct from zero.
 - **History:** review weeks, collection times and revision reasons.
-- **Settings:** change defaults, export/import, link devices and choose reminders.
+- **Settings:** change defaults, export/import and choose reminders.
 - **Support the project:** opens https://ko-fi.com/tequilasunsett without player data.
 
-Local use creates no account and uploads no tables. Optional sync needs explicit consent. Temporary invitations require approval on an existing device. Private device credentials support revocation and a separate recovery key. Backups exclude credentials and push subscriptions.
+Local use creates no account and uploads no tables. Complete file transfer is free and available in the MVP. Automatic sync is P2 and disabled in the shipped app and API. Its retained local prototype is not a released feature. Future sync that incurs service/call costs will require server-verified paid access through Ko-fi; payment integration, price and access duration are not implemented. Backups exclude credentials and push subscriptions.
 
 ## Reminders
 

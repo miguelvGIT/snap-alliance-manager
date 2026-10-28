@@ -20,6 +20,7 @@ type Env = {
   VAPID_PUBLIC_KEY?: string;
   VAPID_PRIVATE_KEY?: string;
   VAPID_SUBJECT: string;
+  SYNC_PREVIEW?: string;
 };
 type Device = { id: string; space_id: string; label: string; revoked: number };
 const opSchema = z.object({
@@ -155,6 +156,18 @@ async function handle(request: Request, env: Env) {
   const path = url.pathname;
   if (request.method === 'OPTIONS') return new Response(null, { status: 204 });
   if (!path.startsWith('/api/')) return env.ASSETS.fetch(request);
+  if (/^\/api\/(spaces|join|recover)(\/|$)/.test(path)) {
+    const localHosts = ['localhost', '127.0.0.1', '[::1]'];
+    if (
+      env.SYNC_PREVIEW !== 'true' ||
+      !localHosts.includes(url.hostname) ||
+      !localHosts.includes(new URL(env.APP_ORIGIN).hostname)
+    )
+      throw new HttpError(
+        404,
+        'Automatic sync is not available in this version. Use file transfer.',
+      );
+  }
   if (
     !['GET', 'HEAD'].includes(request.method) &&
     request.headers.get('Origin') &&

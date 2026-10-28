@@ -8,9 +8,9 @@ Ler em conjunto com PLANO.md, a fonte de comportamento. Os IDs anteriores foram 
 
 - P0: essencial no MVP.
 - P1: importante e incluído no MVP.
-- P2: futuro; só obrigatório se a funcionalidade entrar na versão.
+- P2: futuro; inclui agora a sincronização automática e os seus conflitos. Não bloqueia o MVP; só se valida quando essa funcionalidade entrar numa entrega P2.
 - AC29 foi retirado: abertura/uso totalmente offline está fora do âmbito e não é uma evolução planeada. O ID não será reutilizado.
-- A sincronização automática usa um ciclo de verificação de um minuto e, no teste controlado, uma tolerância total até 75 segundos. Isto não é uma garantia de disponibilidade em produção.
+- A futura sincronização automática P2 usa um ciclo de verificação de um minuto e, no teste controlado, uma tolerância total até 75 segundos. Isto não é uma garantia de disponibilidade em produção.
 - Falhas temporárias de rede/API e persistência local continuam a ser testadas; não exigem iniciar a aplicação inteira sem internet.
 
 ## Dados de referência
@@ -109,21 +109,21 @@ Arredondar apenas a apresentação da média a duas casas; usar o valor original
 | AC70 | P0 | Dadas duas instalações sem conta, com serviços remotos desligados, quando o utilizador exporta um ficheiro no PC e o seleciona na PWA do telemóvel. | A transferência recupera todos os dados estruturados sem contactar APIs de sincronização ou notificações e sem enviar o ficheiro para um servidor. A seleção/importação usa leitura local; só os pedidos normais aos ficheiros da aplicação são permitidos. | Automático com inspeção de rede + teste de ficheiros em iOS/Android/Windows. |
 | AC71 | P0 | Dado um ficheiro já importado, quando o mesmo ficheiro é importado novamente; e quando depois se alteram dados apenas num dos dispositivos. | A repetição não duplica registos/revisões nem altera indicadores. A alteração posterior permanece no dispositivo onde ocorreu até nova transferência ou sincronização automática ativada. A interface mostra momentos de transferência e não afirma uma ligação permanente. | Automático em dois contextos. |
 | AC72 | P0 | Dado um ficheiro com preferências gerais, quando é importado num dispositivo novo ou num espaço que já tinha sincronização ativa. | Não copia credenciais/subscrições nem ativa sincronização ou notificações automaticamente. No espaço já ligado, a importação não propaga a cópia remotamente sem confirmação do destino/retoma. A permissão de notificações é tratada no novo dispositivo e a operação local conserva a cópia anterior em caso de falha. | Automático com rede observada + verificação de permissões em dispositivo real. |
-| AC62 | P0 | Dado modo local, quando se restaura um backup; ou dado emparelhamento, quando se perde um dispositivo e se tenta recuperar o espaço. | O backup funciona sem conta. A recuperação remota usa outro dispositivo autorizado ou chave própria, conforme a solução escolhida; a ausência de mecanismos de recuperação é explicada sem fingir recuperação por email. Conta, se oferecida, só surge na opção de sincronizar. | Automático + revisão do fluxo. |
+| AC62 | P0 | Dado modo local, quando se restaura um backup; ou, numa futura entrega P2 com emparelhamento, quando se perde um dispositivo e se tenta recuperar o espaço. | O backup funciona sem conta. A recuperação remota usa outro dispositivo autorizado ou chave própria, conforme a solução escolhida; a ausência de mecanismos de recuperação é explicada sem fingir recuperação por email. Conta, se oferecida, só surge na opção de sincronizar. | Automático + revisão do fluxo. |
 
-## 6. Sincronização automática opcional
+## 6. Sincronização automática — P2, fora do MVP
 
 | ID | Prioridade | Dado / Quando | Então — resultado observável | Verificação |
 | --- | --- | --- | --- | --- |
-| AC59 | P0 | Dado histórico local existente, quando se ativa a sincronização e se liga outro dispositivo. | Existe confirmação explícita da ligação remota; o histórico original mantém IDs, mínimos, motivos e revisões. Nada é enviado antes da ativação. | Automático em duas sessões. |
-| AC60 | P0 | Dado o caminho preferido por emparelhamento, quando se usam convites expirados, já usados, inválidos ou não aprovados. | Não dão acesso. Um convite válido só funciona com a autorização prevista e protege tentativas; um código curto não é a credencial permanente do espaço. | Automático; obrigatório se esta for a solução lançada. |
-| AC61 | P0 | Dados dois dispositivos emparelhados, quando um é revogado ou se desativa a sincronização localmente. | A revogação impede novos acessos remotos com as credenciais revogadas; desativar sincronização interrompe novos envios do dispositivo. A cópia local continua utilizável. Não se promete apagar dados que um dispositivo já descarregou. | Automático. |
-| AC28 | P0 | Dadas duas sessões autorizadas com sincronização ativa e ambas visíveis, quando se altera um resultado no PC. | O telemóvel recebe a alteração no ciclo seguinte, até 75 segundos em condições normais controladas, sem transferir ficheiros. A indicação remota só aparece após confirmação. | Duas sessões + dispositivo real; relógio controlado. |
-| AC30 | P0 | Dadas alterações locais pendentes e uma falha temporária da API, quando o serviço volta a estar disponível com a PWA ativa. | Retoma o envio automaticamente, sem perder alterações ou fingir confirmação remota antes de a receber. | Automático. |
-| AC31 | P1 | Dadas duas sessões da PWA já carregadas e baseadas na mesma versão, quando ambas corrigem o mesmo resultado com o serviço de sincronização inacessível e depois voltam a ligar. | Ambas as revisões ficam preservadas; o conflito é identificado e o gestor escolhe a resolução. Nenhuma versão desaparece por ser a última escrita. O teste não exige abrir a aplicação de raiz sem internet. | Automático em duas sessões. |
-| AC32 | P0 | Quando uma operação de sincronização é repetida após falha de ligação. | O mesmo identificador de operação impede duplicar resultado, revisão ou contagem. | Automático com falha simulada. |
-| AC33 | P0 | Dados espaços privados A e B, quando um dispositivo de B ou um pedido sem credencial tenta ler/alterar o espaço A ou os seus lembretes. | Só dispositivos autorizados de A conseguem; o serviço recusa os restantes mesmo em pedidos diretos. Conhecer apenas o ID do espaço não dá acesso. | Automático na API; emuladores se aplicável. |
-| AC34 | P0 | Quando se desliga um espaço sincronizado ou se muda para outro no mesmo navegador. | Os dados não são misturados nem enviados para o novo espaço sem ação explícita. Dados locais e alterações pendentes não são descartados sem aviso e possibilidade de recuperação. | Automático. |
+| AC59 | P2 | Dado histórico local existente, quando se ativa a sincronização e se liga outro dispositivo. | Existe confirmação explícita da ligação remota; o histórico original mantém IDs, mínimos, motivos e revisões. Nada é enviado antes da ativação. | Automático em duas sessões. |
+| AC60 | P2 | Dado o caminho preferido por emparelhamento, quando se usam convites expirados, já usados, inválidos ou não aprovados. | Não dão acesso. Um convite válido só funciona com a autorização prevista e protege tentativas; um código curto não é a credencial permanente do espaço. | Automático; obrigatório se esta for a solução lançada. |
+| AC61 | P2 | Dados dois dispositivos emparelhados, quando um é revogado ou se desativa a sincronização localmente. | A revogação impede novos acessos remotos com as credenciais revogadas; desativar sincronização interrompe novos envios do dispositivo. A cópia local continua utilizável. Não se promete apagar dados que um dispositivo já descarregou. | Automático. |
+| AC28 | P2 | Dadas duas sessões autorizadas com sincronização ativa e ambas visíveis, quando se altera um resultado no PC. | O telemóvel recebe a alteração no ciclo seguinte, até 75 segundos em condições normais controladas, sem transferir ficheiros. A indicação remota só aparece após confirmação. | Duas sessões + dispositivo real; relógio controlado. |
+| AC30 | P2 | Dadas alterações locais pendentes e uma falha temporária da API, quando o serviço volta a estar disponível com a PWA ativa. | Retoma o envio automaticamente, sem perder alterações ou fingir confirmação remota antes de a receber. | Automático. |
+| AC31 | P2 | Dadas duas sessões da PWA já carregadas e baseadas na mesma versão, quando ambas corrigem o mesmo resultado com o serviço de sincronização inacessível e depois voltam a ligar. | Ambas as revisões ficam preservadas; o conflito é identificado e o gestor escolhe a resolução. Nenhuma versão desaparece por ser a última escrita. O teste não exige abrir a aplicação de raiz sem internet. | Automático em duas sessões. |
+| AC32 | P2 | Quando uma operação de sincronização é repetida após falha de ligação. | O mesmo identificador de operação impede duplicar resultado, revisão ou contagem. | Automático com falha simulada. |
+| AC33 | P0 | Dados lembretes privados de A e B, quando um pedido sem credencial ou com credencial de B tenta alterar/remover os de A. A mesma regra aplica-se aos espaços sincronizados quando P2 for entregue. | Só dispositivos autorizados de A conseguem; o serviço recusa os restantes mesmo em pedidos diretos. Conhecer apenas o ID do espaço não dá acesso. | Automático na API; emuladores se aplicável. |
+| AC34 | P2 | Quando se desliga um espaço sincronizado ou se muda para outro no mesmo navegador. | Os dados não são misturados nem enviados para o novo espaço sem ação explícita. Dados locais e alterações pendentes não são descartados sem aviso e possibilidade de recuperação. | Automático. |
 
 ## 7. Lembretes e calendário
 
@@ -145,15 +145,17 @@ Arredondar apenas a apresentação da média a duas casas; usar o valor original
 | AC65 | P1 | Dada sincronização desativada e ausência de conta, quando se ativam lembretes Web Push. | Consegue registar e receber o lembrete autorizado; só envia subscrição, identidade técnica e preferências necessárias. Os dados dos jogadores continuam locais e não surge um pedido de conta. | Automático de rede + dispositivo real. |
 | AC76 | P1 | Dada antecedência escolhida, quando se exporta um lembrete iCalendar e se importa num calendário alvo compatível. | O ficheiro local descreve reset semanal terça 19:00 UTC e o aviso escolhido, sem dados de jogadores e sem pedido à API de envio. O calendário gere o alerta após ação do utilizador. Explica diferenças de suporte, reimportação após mudanças e risco de duplicados; não usa feed remoto. | Validação do ficheiro + calendário/dispositivo real. |
 
-## 8. Preparação do MVP para reduzir chamadas
+## 8. Preparação local do MVP e chamadas de sincronização P2
 
 | ID | Prioridade | Dado / Quando | Então — resultado observável | Verificação |
 | --- | --- | --- | --- | --- |
-| AC73 | P0 | Dado um conjunto de dados com IDs/revisões estáveis, quando se exporta/importa e se envia/recebe pelo transporte remoto do MVP. | O mesmo modelo e validação conservam identidades, indicadores e conflitos em ambos os caminhos. O transporte é substituível sem migrar o histórico nem reescrever os cálculos. | Integração de ficheiro e transporte com dados fictícios. |
-| AC74 | P0 | Dada sincronização ativa, quando se editam 30 resultados com intervalos inferiores a 5 segundos, se repetem eventos de foco e depois se oculta a aplicação. | Guarda localmente de imediato e envia as edições num lote após a janela de 5 segundos sem alterações, sem um pedido por célula. Agrupa foco em 30 segundos; verificações periódicas leves só enquanto visível, no máximo uma vez por minuto. Desativada, não faz pedidos de pontos. | Relógio controlado e contagem de pedidos por tipo. |
+| AC73 | P0 | Dado um conjunto de dados com IDs/revisões estáveis, quando se exporta/importa e se verifica o contrato de transporte com dados fictícios. O serviço de sincronização real só é exigido em P2. | O mesmo modelo e validação conservam identidades, indicadores e conflitos em ambos os caminhos. O transporte é substituível sem migrar o histórico nem reescrever os cálculos. | Integração de ficheiro e contrato com transporte simulado; serviço real em P2. |
+| AC74 | P2 | Dada sincronização ativa, quando se editam 30 resultados com intervalos inferiores a 5 segundos, se repetem eventos de foco e depois se oculta a aplicação. | Guarda localmente de imediato e envia as edições num lote após a janela de 5 segundos sem alterações, sem um pedido por célula. Agrupa foco em 30 segundos; verificações periódicas leves só enquanto visível, no máximo uma vez por minuto. Desativada, não faz pedidos de pontos. | Relógio controlado e contagem de pedidos por tipo. |
 | AC75 | P0 | Dado que a API devolve erro de quota/rede, quando o cliente tenta recuperar. | Conserva pendentes, espaça e limita repetições, sem ciclo infinito ou falha falsa de sucesso. Registo, histórico, ficheiro e exportação de calendário continuam disponíveis; não ativa faturação nem bloqueia utilizadores locais. | Falhas simuladas e registo de tentativas. |
 
 ## 9. Evoluções futuras — não obrigatórias no MVP
+
+RF08/RF18, AC28, AC30–AC32, AC34, AC59–AC61 e AC74 também são P2. Nos cenários mistos AC62, AC72 e AC87, o caminho de ficheiro/local é obrigatório no MVP e a parte remota é condicional a P2.
 
 | ID | Prioridade | Dado / Quando | Então — resultado observável | Verificação |
 | --- | --- | --- | --- | --- |
@@ -163,6 +165,7 @@ Arredondar apenas a apresentação da média a duas casas; usar o valor original
 | AC77 | P2 | Dada a futura ligação WebRTC entre dois dispositivos autorizados ativos numa rede compatível, quando se transferem alterações. | Após negociação, os dados passam pelo canal direto, sem pedido à nossa API por alteração. Preserva IDs/conflitos e limita pedidos de sinalização. Uma rede que exija relay pago não causa contratação automática; oferece ficheiro. | Apenas se FUT01 for implementado; duas redes/dispositivos reais. |
 | AC78 | P2 | Dado o futuro transporte com armazenamento escolhido pelo utilizador, quando este autoriza e depois revoga acesso. | Usa o espaço privado autorizado, sem duplicação obrigatória das tabelas em D1. Explica conta, quotas e eventuais custos do fornecedor; revogação ou quota não bloqueia o modo local/ficheiros. | Apenas se FUT02 for implementado; conta de teste e rede observada. |
 | AC79 | P2 | Dado um futuro canal de eventos ativo, quando há alterações remotas, períodos sem mudanças e uma reconexão. | O aviso permite obter diferenças sem manter verificações periódicas em paralelo; a reconexão recupera o que faltou. Mede conexões, mensagens e serviços auxiliares sem afirmar que o transporte elimina quotas. | Apenas se FUT03 for implementado. |
+| AC88 | P2 | Dado que a sincronização automática implica custos de chamadas/serviço, quando alguém tenta ativar, ler, enviar, associar ou recuperar dados remotos sem um direito de acesso Ko-fi válido. | O servidor recusa o acesso; abrir o link de apoio ou alterar o armazenamento do navegador não desbloqueia a função. Pagamento válido, repetição do webhook e fim do período são tratados sem duplicar acesso. Expiração/revogação não apaga dados locais nem bloqueia transferência manual gratuita. | Integração de pagamentos de teste e API; apenas na entrega P2. |
 
 ## 10. Correspondência com o plano
 
@@ -173,7 +176,7 @@ Arredondar apenas a apresentação da média a duas casas; usar o valor original
 | RF03–RF06, pontos/semanas/indicadores | AC02–AC03, AC07–AC19, AC27, AC63, AC67–AC68 |
 | RF13–RF15, dispensas e destaque | AC20–AC24, AC66 |
 | RF07/RN19, ficheiros e backup | AC35–AC37, AC62, AC70–AC72 |
-| RF08/RF18, sincronização | AC28, AC30–AC34, AC59–AC61 |
+| RF08/RF18, sincronização P2 | AC28, AC30–AC34, AC59–AC61 |
 | RF16/RF17, lembretes e calendário | AC39–AC51, AC65, AC76 |
 | RF09/RF10, apoio e distribuição | AC52–AC54 |
 | RF12, ESC01–ESC06 — preparação no MVP | AC69–AC76, especialmente AC73–AC76 |
@@ -187,12 +190,12 @@ Arredondar apenas a apresentação da média a duas casas; usar o valor original
 2. Playwright verifica os fluxos, duas sessões/contextos, rede observada, agrupamento de pedidos e falhas.
 3. Wrangler/D1 locais verificam autorização, isolamento, agendamento e limites de repetição. Usar dados fictícios, relógio controlável e envio simulado; impedir contacto acidental com produção.
 4. Dispositivos reais verificam instalação, seleção/gravação de ficheiros, permissões, Web Push com a aplicação fechada e calendário. WebKit emulado não substitui um iPhone.
-5. Um piloto percorre a tabela antes do reset, consulta depois, transfere/restaura um ficheiro e confirma a sincronização opcional e os lembretes.
+5. Um piloto percorre a tabela antes do reset, consulta depois, transfere/restaura um ficheiro e confirma os lembretes. A sincronização automática será verificada na entrega P2.
 
 Cada execução regista versão da aplicação, sistema/navegador/cliente de calendário, cenário, resultado e evidência sem dados pessoais reais. Os testes de quota medem também chamadas/CPU/linhas lidas e escritas; não provam uma capacidade infinita de utilizadores.
 
 ## 12. Critério de aprovação
 
-Todos os cenários P0 e P1 aplicáveis têm de passar. AC60 é específico do emparelhamento; uma solução com conta opcional exige critérios equivalentes de autorização/isolamento sem remover o modo local sem conta. A transferência manual não prova que a sincronização automática foi entregue.
+Todos os cenários P0 e P1 aplicáveis têm de passar. A sincronização automática passou para P2 e não bloqueia a aprovação do MVP. Nos cenários mistos, é obrigatório o caminho local/ficheiro; a parte remota só se aplica à entrega P2. O MVP não anuncia sincronização automática nem faz chamadas aos seus endpoints.
 
-AC29 está retirado. AC55–AC57 e AC77–AC79 são P2. Preparar a arquitetura e testar AC73–AC76 no MVP não obriga a implementar os transportes futuros. Limitações ou hardware indisponível ficam como pendentes; não marcar como aprovado o que não foi demonstrado.
+AC29 está retirado. AC28, AC30–AC32, AC34, AC55–AC57, AC59–AC61, AC74 e AC77–AC79 são P2, além de AC88. AC58 permanece P0: uso local sem conta nem envio de tabelas. Preparar a arquitetura e testar AC73, AC75 e AC76 no MVP não obriga a implementar os transportes futuros. Limitações ou hardware indisponível ficam como pendentes; não marcar como aprovado o que não foi demonstrado.

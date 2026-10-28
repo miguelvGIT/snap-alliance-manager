@@ -16,7 +16,7 @@ Marvel Snap alliance managers preserve weekly contributions and assess minimums.
 
 ## Constraints
 
-No account for local use. No mandatory costs. Private tables and full file transfer. Sync and reminders are optional and independent. Dates are local, player identity is internal, and missing values differ from zero. Full offline support is out of scope.
+No account for local use. No mandatory costs. Private tables and full file transfer. Automatic sync is P2 and disabled in the shipped MVP. File transfer stays free. Future sync with service/call costs requires server-verified paid Ko-fi access. Reminders remain an independent MVP feature. Dates are local, player identity is internal, and missing values differ from zero. Full offline support is out of scope.
 
 ## Interface commitments
 

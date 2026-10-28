@@ -28,6 +28,7 @@ beforeAll(async () => {
     >[1]['ASSETS'],
     APP_ORIGIN: 'http://localhost',
     VAPID_SUBJECT: 'mailto:local@example.invalid',
+    SYNC_PREVIEW: 'true',
   };
   for (const migration of (await readdir('worker/migrations'))
     .filter((name) => name.endsWith('.sql'))
@@ -52,6 +53,29 @@ async function space() {
   return response.json() as Promise<Creds>;
 }
 describe('API local com D1 real', () => {
+  it('AC58 AC69: the MVP rejects sync endpoints, including direct requests', async () => {
+    delete env.SYNC_PREVIEW;
+    try {
+      for (const path of [
+        '/api/spaces',
+        '/api/spaces/example/snapshot',
+        '/api/join',
+        '/api/join/claim',
+        '/api/recover',
+      ]) {
+        expect((await request(path, {})).status).toBe(404);
+      }
+      expect((await request('/api/config')).status).toBe(200);
+      env.SYNC_PREVIEW = 'true';
+      const remote = await worker.fetch(
+        new Request('https://example.invalid/api/spaces', { method: 'POST' }),
+        env,
+      );
+      expect(remote.status).toBe(404);
+    } finally {
+      env.SYNC_PREVIEW = 'true';
+    }
+  });
   it('AC59 AC33: só os dispositivos autorizados leem o espaço', async () => {
     const a = await space(),
       b = await space();

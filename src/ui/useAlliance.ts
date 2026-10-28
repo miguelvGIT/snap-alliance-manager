@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { type Dataset } from '../domain/model';
 import { db, readDataset, saveDataset } from '../data/store';
 import { SyncEngine } from '../sync/client';
+import { SYNC_PREVIEW } from '../features';
 export function useAlliance() {
   const [data, setData] = useState<Dataset | null>(null),
     [loading, setLoading] = useState(true),
@@ -29,13 +30,15 @@ export function useAlliance() {
       .finally(() => {
         if (mounted) setLoading(false);
       });
-    const sync = new SyncEngine((next, status) => {
-      if (unsaved.current) return;
-      if (next) update(next);
-      setSyncStatus(status);
-    });
+    const sync = SYNC_PREVIEW
+      ? new SyncEngine((next, status) => {
+          if (unsaved.current) return;
+          if (next) update(next);
+          setSyncStatus(status);
+        })
+      : null;
     engine.current = sync;
-    sync.start();
+    sync?.start();
     const broadcast = new BroadcastChannel('alliance-data');
     channel.current = broadcast;
     broadcast.onmessage = () => {
@@ -53,7 +56,7 @@ export function useAlliance() {
     window.addEventListener('beforeunload', protect);
     return () => {
       mounted = false;
-      sync.stop();
+      sync?.stop();
       broadcast.close();
       window.removeEventListener('beforeunload', protect);
     };

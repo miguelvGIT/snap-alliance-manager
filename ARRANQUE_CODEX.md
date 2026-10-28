@@ -21,13 +21,13 @@ Segue as entregas da secção 10 do plano:
 1. Identidades, participações, semanas, mínimos e indicadores.
 2. Grelha, conferência manual de nomes, histórico, perfil e tabela inicial.
 3. Transferência manual completa e conservação.
-4. Sincronização automática opcional e redução de pedidos.
+4. Redução de pedidos e preparação de formato/transporte. Sincronização automática e conflitos remotos são P2; não os desenvolver como bloqueadores do MVP.
 5. Lembretes e alternativa de calendário.
 6. Instalação/publicação HTTPS e piloto, quando a fase de publicação for iniciada.
 
 Mantém o caminho manual completo mesmo com serviços remotos desligados. Ler um ficheiro escolhido pelo utilizador é uma operação local, sem upload para o backend. Preserva IDs, motivos, recolhas e revisões; valida, pré-visualiza e confirma substituições. Uma importação não ativa ou propaga dados remotamente em silêncio.
 
-Na sincronização, cumpre a política de lotes, diferenças, foco agrupado, verificação limitada enquanto visível e tentativas com espera crescente da secção 5.2. O teste controlado de propagação tem limite de 75 segundos. Não confundir uma cópia importada com sincronização automática.
+Quando se iniciar a sincronização P2, cumpre a política de lotes, diferenças, foco agrupado, verificação limitada enquanto visível e tentativas com espera crescente da secção 5.2. O teste controlado de propagação tem limite de 75 segundos. Não confundir uma cópia importada com sincronização automática.
 
 ## 4. Regras que não podem perder-se
 
@@ -51,6 +51,8 @@ Deixa o contrato preparado para FUT01–FUT03: ligação direta, armazenamento e
 Mede chamadas, CPU e leituras/escritas, incluindo o pico anterior ao reset. Reconfirma as quotas oficiais quando implementares. Não ativar faturação paga, criar um serviço/base/agendamento por pessoa ou bloquear o uso local por quota remota. Não usar APIs pagas de OCR/IA nem incorporar a API OpenAI.
 
 ## 6. Verificação e entrega
+
+Sincronização automática fica oculta e bloqueada na versão MVP. Se no futuro implicar custos de chamadas/serviço, exige acesso pago via Ko-fi validado no servidor, nos termos da secção 5.3 do plano. Transferência manual e uso local ficam gratuitos; não integrar cobrança neste incremento.
 
 Usa Vitest, Playwright e Wrangler/D1 locais sem contactar produção. Preserva os IDs AC existentes: AC29 está retirado, os P2 só são obrigatórios se a funcionalidade entrar na versão, e os P0/P1 aplicáveis são o critério do MVP.
 

@@ -210,7 +210,7 @@ export default function App() {
                   </p>
                   <p>
                     <strong>Your history stays private</strong>
-                    <span>No account required. Link devices only when you choose.</span>
+                    <span>No account required. Transfer your history with a file.</span>
                   </p>
                 </div>
               </div>

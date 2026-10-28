@@ -24,6 +24,7 @@ import { api, enableSync, joinSnapshot, resolveConflict, type SyncEngine } from 
 import type { Commit } from './useAlliance';
 import { Modal, Field, Notice, number } from './Modal';
 import s from './ui.module.css';
+import { SYNC_PREVIEW } from '../features';
 type JoinRequest = { id: string; label: string; verification: string };
 type Reminder = { id: string; token: string; nextDue: number; resetAt: string };
 const deviceSecret = () => {
@@ -247,287 +248,292 @@ export default function Settings({
           </details>
         </div>
       </section>
-      <section className={s.settingsSection}>
-        <div>
-          <h2>Linked devices</h2>
-          <p>Optional. Sync keeps a private copy on the service to update your devices.</p>
-          <p>Reminders do not require this link.</p>
-        </div>
-        <div className={s.panel}>
-          {!credentials ? (
-            <>
-              <Notice>
-                Your history is only on this device. Enabling sync sends the tables to your private
-                space.
-              </Notice>
-              <label className={s.check}>
-                <input
-                  type="checkbox"
-                  checked={remoteConsent}
-                  onChange={(e) => setRemoteConsent(e.target.checked)}
-                />{' '}
-                I want to enable a private copy and link devices
-              </label>
-              <button
-                disabled={!remoteConsent || busy}
-                className={s.primary}
-                onClick={() =>
-                  run(async () => {
-                    const result = await enableSync(data);
-                    setCredentials(result);
-                    setMessage('Sync enabled. Keep your recovery key in a private location.');
-                  })
-                }
-              >
-                <Link2 size={16} /> Enable sync
-              </button>
-              <details>
-                <summary>I have an invitation from another device</summary>
-                <Field label="Temporary invitation">
+      {SYNC_PREVIEW && (
+        <section className={s.settingsSection}>
+          <div>
+            <h2>Linked devices</h2>
+            <p>Optional. Sync keeps a private copy on the service to update your devices.</p>
+            <p>Reminders do not require this link.</p>
+          </div>
+          <div className={s.panel}>
+            {!credentials ? (
+              <>
+                <Notice>
+                  Your history is only on this device. Enabling sync sends the tables to your
+                  private space.
+                </Notice>
+                <label className={s.check}>
                   <input
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    autoComplete="off"
-                  />
-                </Field>
+                    type="checkbox"
+                    checked={remoteConsent}
+                    onChange={(e) => setRemoteConsent(e.target.checked)}
+                  />{' '}
+                  I want to enable a private copy and link devices
+                </label>
                 <button
-                  disabled={!code.trim() || busy || !!join}
+                  disabled={!remoteConsent || busy}
+                  className={s.primary}
                   onClick={() =>
                     run(async () => {
-                      const result = await api<{
-                        requestId: string;
-                        claimSecret: string;
-                        verification: string;
-                      }>('/join', { code, label: navigator.platform || 'New device' });
-                      setJoin({
-                        ...result,
-                        deviceToken: deviceSecret(),
-                        deviceId: crypto.randomUUID(),
-                      });
+                      const result = await enableSync(data);
+                      setCredentials(result);
+                      setMessage('Sync enabled. Keep your recovery key in a private location.');
                     })
                   }
                 >
-                  Request a link
+                  <Link2 size={16} /> Enable sync
                 </button>
-                {join && (
-                  <Notice>
-                    Confirm code <strong>{join.verification}</strong> on the other device. Wait for
-                    approval; this request expires in ten minutes.
-                  </Notice>
-                )}
-              </details>
-              <details>
-                <summary>Recover with your key</summary>
-                <Field label="Space ID and key (space.key)">
-                  <input
-                    value={recovery}
-                    onChange={(e) => setRecovery(e.target.value)}
-                    autoComplete="off"
-                  />
-                </Field>
-                <button
-                  disabled={busy || !recovery.includes('.')}
-                  onClick={() =>
-                    run(async () => {
-                      const [spaceId, recoveryKey] = recovery.split('.');
-                      setJoined(
-                        await api<SyncCredentials>('/recover', {
-                          spaceId,
-                          recoveryKey,
-                          label: 'Recovered device',
-                        }),
-                      );
-                    })
-                  }
-                >
-                  Recover link
-                </button>
-              </details>
-            </>
-          ) : (
-            <>
-              <p className={s.success}>Sync is enabled on this device</p>
-              <div className={s.actions}>
-                <button
-                  onClick={() =>
-                    run(async () => {
-                      await engine?.run(true);
-                      await reload();
-                      setMessage('Sync cycle finished. Check the status on the overview.');
-                    })
-                  }
-                >
-                  <RefreshCw size={16} /> Sync now
-                </button>
-                <button
-                  onClick={() =>
-                    run(async () => {
-                      const invite = await api<{ code: string }>(
-                        '/spaces/' + credentials.spaceId + '/invites',
-                        {},
-                        credentials.token,
-                      );
-                      setCode(invite.code);
-                      setQr(await QRCode.toDataURL(invite.code, { width: 220, margin: 2 }));
-                    })
-                  }
-                >
-                  Create invitation
-                </button>
-                <button
-                  onClick={() =>
-                    run(async () => {
-                      await disableSync();
-                      setCredentials(null);
-                      setMessage('Sync disabled. Your local copy has been kept.');
-                    })
-                  }
-                >
-                  <Unlink size={16} /> Unlink this device
-                </button>
-              </div>
-              {credentials.recoveryKey && (
                 <details>
-                  <summary>Show private recovery key</summary>
-                  <p>Anyone with this key can access your space. Store it outside the app.</p>
-                  <textarea readOnly value={credentials.spaceId + '.' + credentials.recoveryKey} />
-                </details>
-              )}
-              {qr && (
-                <div>
-                  <img
-                    src={qr}
-                    width="180"
-                    height="180"
-                    alt="Temporary invitation to link another device"
-                  />
-                  <Field label="Invitation (valid for ten minutes)">
-                    <textarea readOnly value={code} />
+                  <summary>I have an invitation from another device</summary>
+                  <Field label="Temporary invitation">
+                    <input
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      autoComplete="off"
+                    />
                   </Field>
-                </div>
-              )}
-              <div className={s.actions}>
-                <button
-                  onClick={() =>
-                    run(async () => {
-                      const result = await api<{ requests: JoinRequest[] }>(
-                        '/spaces/' + credentials.spaceId + '/invites',
-                        undefined,
-                        credentials.token,
-                      );
-                      setRequests(result.requests);
-                    })
-                  }
-                >
-                  View link requests
-                </button>
-                <button
-                  onClick={() =>
-                    run(async () => {
-                      const result = await api<{ devices: typeof devices }>(
-                        '/spaces/' + credentials.spaceId + '/devices',
-                        undefined,
-                        credentials.token,
-                      );
-                      setDevices(result.devices);
-                    })
-                  }
-                >
-                  View authorized devices
-                </button>
-              </div>
-              {requests.map((request) => (
-                <div className={s.pendingRequest} key={request.id}>
-                  <p>
-                    {request.label} · Code <strong>{request.verification}</strong>
-                  </p>
                   <button
+                    disabled={!code.trim() || busy || !!join}
                     onClick={() =>
                       run(async () => {
-                        await api(
-                          '/spaces/' + credentials.spaceId + '/approve/' + request.id,
-                          {},
-                          credentials.token,
-                        );
-                        setRequests(requests.filter((r) => r.id !== request.id));
-                        setMessage('Device authorized.');
+                        const result = await api<{
+                          requestId: string;
+                          claimSecret: string;
+                          verification: string;
+                        }>('/join', { code, label: navigator.platform || 'New device' });
+                        setJoin({
+                          ...result,
+                          deviceToken: deviceSecret(),
+                          deviceId: crypto.randomUUID(),
+                        });
                       })
                     }
                   >
-                    Confirm code and authorize
+                    Request a link
+                  </button>
+                  {join && (
+                    <Notice>
+                      Confirm code <strong>{join.verification}</strong> on the other device. Wait
+                      for approval; this request expires in ten minutes.
+                    </Notice>
+                  )}
+                </details>
+                <details>
+                  <summary>Recover with your key</summary>
+                  <Field label="Space ID and key (space.key)">
+                    <input
+                      value={recovery}
+                      onChange={(e) => setRecovery(e.target.value)}
+                      autoComplete="off"
+                    />
+                  </Field>
+                  <button
+                    disabled={busy || !recovery.includes('.')}
+                    onClick={() =>
+                      run(async () => {
+                        const [spaceId, recoveryKey] = recovery.split('.');
+                        setJoined(
+                          await api<SyncCredentials>('/recover', {
+                            spaceId,
+                            recoveryKey,
+                            label: 'Recovered device',
+                          }),
+                        );
+                      })
+                    }
+                  >
+                    Recover link
+                  </button>
+                </details>
+              </>
+            ) : (
+              <>
+                <p className={s.success}>Sync is enabled on this device</p>
+                <div className={s.actions}>
+                  <button
+                    onClick={() =>
+                      run(async () => {
+                        await engine?.run(true);
+                        await reload();
+                        setMessage('Sync cycle finished. Check the status on the overview.');
+                      })
+                    }
+                  >
+                    <RefreshCw size={16} /> Sync now
+                  </button>
+                  <button
+                    onClick={() =>
+                      run(async () => {
+                        const invite = await api<{ code: string }>(
+                          '/spaces/' + credentials.spaceId + '/invites',
+                          {},
+                          credentials.token,
+                        );
+                        setCode(invite.code);
+                        setQr(await QRCode.toDataURL(invite.code, { width: 220, margin: 2 }));
+                      })
+                    }
+                  >
+                    Create invitation
+                  </button>
+                  <button
+                    onClick={() =>
+                      run(async () => {
+                        await disableSync();
+                        setCredentials(null);
+                        setMessage('Sync disabled. Your local copy has been kept.');
+                      })
+                    }
+                  >
+                    <Unlink size={16} /> Unlink this device
                   </button>
                 </div>
-              ))}
-              {devices
-                .filter((d) => !d.revoked)
-                .map((device) => (
-                  <div key={device.id} className={s.pendingRequest}>
-                    <span>
-                      {device.label}
-                      {device.id === credentials.deviceId ? ' · this device' : ''}
-                    </span>
+                {credentials.recoveryKey && (
+                  <details>
+                    <summary>Show private recovery key</summary>
+                    <p>Anyone with this key can access your space. Store it outside the app.</p>
+                    <textarea
+                      readOnly
+                      value={credentials.spaceId + '.' + credentials.recoveryKey}
+                    />
+                  </details>
+                )}
+                {qr && (
+                  <div>
+                    <img
+                      src={qr}
+                      width="180"
+                      height="180"
+                      alt="Temporary invitation to link another device"
+                    />
+                    <Field label="Invitation (valid for ten minutes)">
+                      <textarea readOnly value={code} />
+                    </Field>
+                  </div>
+                )}
+                <div className={s.actions}>
+                  <button
+                    onClick={() =>
+                      run(async () => {
+                        const result = await api<{ requests: JoinRequest[] }>(
+                          '/spaces/' + credentials.spaceId + '/invites',
+                          undefined,
+                          credentials.token,
+                        );
+                        setRequests(result.requests);
+                      })
+                    }
+                  >
+                    View link requests
+                  </button>
+                  <button
+                    onClick={() =>
+                      run(async () => {
+                        const result = await api<{ devices: typeof devices }>(
+                          '/spaces/' + credentials.spaceId + '/devices',
+                          undefined,
+                          credentials.token,
+                        );
+                        setDevices(result.devices);
+                      })
+                    }
+                  >
+                    View authorized devices
+                  </button>
+                </div>
+                {requests.map((request) => (
+                  <div className={s.pendingRequest} key={request.id}>
+                    <p>
+                      {request.label} · Code <strong>{request.verification}</strong>
+                    </p>
                     <button
                       onClick={() =>
                         run(async () => {
                           await api(
-                            '/spaces/' + credentials.spaceId + '/devices/' + device.id,
-                            undefined,
+                            '/spaces/' + credentials.spaceId + '/approve/' + request.id,
+                            {},
                             credentials.token,
-                            'DELETE',
                           );
-                          setDevices(devices.filter((d) => d.id !== device.id));
-                          if (device.id === credentials.deviceId) await disableSync();
-                          setMessage(
-                            'Remote access revoked. Previously downloaded data remains on that device.',
-                          );
+                          setRequests(requests.filter((r) => r.id !== request.id));
+                          setMessage('Device authorized.');
                         })
                       }
                     >
-                      Revoke access
+                      Confirm code and authorize
                     </button>
                   </div>
                 ))}
-            </>
-          )}
-          {conflicts.map((conflict) => (
-            <div key={conflict.id} className={s.warning}>
-              <h3>Two versions need review</h3>
-              <p>Both versions stay in history. Choose which version should be active.</p>
-              <details>
-                <summary>Compare versions</summary>
-                <h4>On this device</h4>
-                <ConflictVersion entity={conflict.key} value={conflict.local.value} />
-                <h4>Remote</h4>
-                <ConflictVersion entity={conflict.key} value={conflict.remote} />
-              </details>
-              <div className={s.actions}>
-                <button
-                  onClick={() =>
-                    run(async () => {
-                      await resolveConflict(conflict, true);
-                      await reload();
-                      await engine?.run(true);
-                    })
-                  }
-                >
-                  Keep this device's version
-                </button>
-                <button
-                  onClick={() =>
-                    run(async () => {
-                      await resolveConflict(conflict, false);
-                      await reload();
-                      await engine?.run(true);
-                    })
-                  }
-                >
-                  Use remote version
-                </button>
+                {devices
+                  .filter((d) => !d.revoked)
+                  .map((device) => (
+                    <div key={device.id} className={s.pendingRequest}>
+                      <span>
+                        {device.label}
+                        {device.id === credentials.deviceId ? ' · this device' : ''}
+                      </span>
+                      <button
+                        onClick={() =>
+                          run(async () => {
+                            await api(
+                              '/spaces/' + credentials.spaceId + '/devices/' + device.id,
+                              undefined,
+                              credentials.token,
+                              'DELETE',
+                            );
+                            setDevices(devices.filter((d) => d.id !== device.id));
+                            if (device.id === credentials.deviceId) await disableSync();
+                            setMessage(
+                              'Remote access revoked. Previously downloaded data remains on that device.',
+                            );
+                          })
+                        }
+                      >
+                        Revoke access
+                      </button>
+                    </div>
+                  ))}
+              </>
+            )}
+            {conflicts.map((conflict) => (
+              <div key={conflict.id} className={s.warning}>
+                <h3>Two versions need review</h3>
+                <p>Both versions stay in history. Choose which version should be active.</p>
+                <details>
+                  <summary>Compare versions</summary>
+                  <h4>On this device</h4>
+                  <ConflictVersion entity={conflict.key} value={conflict.local.value} />
+                  <h4>Remote</h4>
+                  <ConflictVersion entity={conflict.key} value={conflict.remote} />
+                </details>
+                <div className={s.actions}>
+                  <button
+                    onClick={() =>
+                      run(async () => {
+                        await resolveConflict(conflict, true);
+                        await reload();
+                        await engine?.run(true);
+                      })
+                    }
+                  >
+                    Keep this device's version
+                  </button>
+                  <button
+                    onClick={() =>
+                      run(async () => {
+                        await resolveConflict(conflict, false);
+                        await reload();
+                        await engine?.run(true);
+                      })
+                    }
+                  >
+                    Use remote version
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+        </section>
+      )}
       <section className={s.settingsSection}>
         <div>
           <h2>Weekly reminders</h2>

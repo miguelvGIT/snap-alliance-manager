@@ -4,7 +4,10 @@ import { exportBackup } from '../src/domain/transfer';
 test('AC28 AC59 AC60: duas sessões autorizadas sincronizam automaticamente', async ({
   browser,
 }, testInfo) => {
-  test.skip(testInfo.project.name !== 'desktop', 'Uma execução com duas sessões independentes.');
+  test.skip(
+    process.env.ALLIANCE_TEST_SYNC_PREVIEW !== 'true' || testInfo.project.name !== 'desktop',
+    'P2: local sync prototype requires explicit opt-in.',
+  );
   test.setTimeout(90000);
   const a = await browser.newContext({
     locale: 'pt-PT',
