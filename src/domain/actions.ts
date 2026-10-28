@@ -220,6 +220,8 @@ export function validateWeek(data: Dataset, weekId: string, allowIncomplete: boo
       const week = draft.weeks.find((w) => w.id === weekId)!;
       if (week.collections.some((c) => c.lines.some((line) => line.state === 'pending')))
         throw new Error('Resolve or explicitly exclude pending rows before validating.');
+      if (!Object.values(week.results).some((result) => typeof result.points === 'number'))
+        throw new Error('Add at least one recorded score before validating this week.');
       const missing = expectedPlayers(draft, week).some((p) => week.results[p.id]?.points == null);
       const incomplete =
         missing ||

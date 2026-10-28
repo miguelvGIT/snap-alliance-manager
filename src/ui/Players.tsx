@@ -12,18 +12,20 @@ export function PlayerForm({
   data,
   player,
   initialName,
+  initialJoinedAt,
   onSave,
   onClose,
 }: {
   data: Dataset;
   player?: Player;
   initialName?: string;
+  initialJoinedAt?: string;
   onSave: (next: Dataset, id: string) => Promise<void>;
   onClose: () => void;
 }) {
   const [name, setName] = useState(player?.name ?? initialName ?? ''),
     [social, setSocial] = useState(player?.social ?? ''),
-    [joined, setJoined] = useState(toLocalInput(weekBounds().start)),
+    [joined, setJoined] = useState(toLocalInput(initialJoinedAt ?? weekBounds().start)),
     [error, setError] = useState('');
   return (
     <Modal title={player ? 'Edit player' : 'Add player'} onClose={onClose}>
@@ -57,7 +59,11 @@ export function PlayerForm({
         {!player && (
           <Field
             label="Alliance joining date"
-            hint="Joining mid-week automatically exempts that first week."
+            hint={
+              initialJoinedAt
+                ? 'Defaults to the selected week’s start. Correct it if the player joined later; joining mid-week exempts that first week.'
+                : 'Joining mid-week automatically exempts that first week.'
+            }
           >
             <input
               type="datetime-local"

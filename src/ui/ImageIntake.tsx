@@ -12,15 +12,20 @@ const MAX_IMAGES = 20;
 export default function ImageIntake({
   hidden,
   onReview,
+  onPendingChange,
 }: {
   hidden: boolean;
   onReview: (collection: Collection, images: ImageInput[]) => void;
+  onPendingChange?: (pending: boolean) => void;
 }) {
   const [images, setImages] = useState<ImageInput[]>([]);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const [capturing, setCapturing] = useState(false);
+  useEffect(() => {
+    onPendingChange?.(images.length > 0 || busy || capturing);
+  }, [images.length, busy, capturing, onPendingChange]);
   const [preview, setPreview] = useState<ImageInput | null>(null);
   const urls = useRef(new Set<string>());
   const imagesRef = useRef(images);

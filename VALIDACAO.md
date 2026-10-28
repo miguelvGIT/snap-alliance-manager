@@ -8,8 +8,8 @@
 | --- | --- |
 | TypeScript build check | Passed |
 | Production frontend/PWA build | Passed |
-| Vitest | 79 tests passed: 34 domain, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API and 12 OCR/cancellation/column/grouping checks. |
-| Playwright | 42 distinct checks passed across 1440×900, 768×1024 and 390×844 on compiled local Cloudflare assets: 39 full-suite passes plus the corrected three conflict checks in the final 12-image-check run. Image checks include zoom before/after recognition, capture-to-total reading, clipboard, grouping and explicit conflict choice. Notification state and screen sharing are simulated; OCR uses the real packaged engine. |
+| Vitest | 82 tests passed: 34 domain, 3 validation, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API and 12 OCR/cancellation/column/grouping checks. |
+| Playwright | 51 checks passed on compiled local Cloudflare assets at 1440×900, 768×1024 and 390×844; three deferred P2 sync skips. Validation checks include saving the current review, reload/backup, current-week totals, empty/pending blockers, local date selection and protection of unsaved work. OCR uses the real packaged engine; notification state and screen sharing are simulated. |
 | Deferred P2 browser tests | Three sync-test skips; automatic sync is disabled in the shipped MVP |
 | Cloudflare publication | Production Worker/static assets published; D1 schema prepared in a new empty database. HTTPS app, manifest, OCR worker/model and public configuration returned 200. No player data was uploaded. |
 | Visual inspection | 0 failures; one small-text warning for secondary copy and metadata |
@@ -39,11 +39,11 @@ The AC43/AC46 corrections passed local regression checks, including reload, serv
 
 ### Acceptance coverage still needed
 
-65 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
+66 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
 
-The following nine mandatory scenarios have no explicit automated-test reference:
+The following eight mandatory scenarios have no explicit automated-test reference:
 
-- P0: AC10 (late entry of an earlier collection), AC13 (twenty historical weeks with eight visible), AC54 (published PWA installation), AC82 (explicit creation of a new identity during review).
+- P0: AC13 (twenty historical weeks with eight visible), AC54 (published PWA installation), AC82 (explicit creation of a new identity during review).
 - P1: AC24 (repeat-miss distinction), AC42 (drafts do not suppress reminders), AC45 (stale notification expiry), AC47 (real iPhone receipt), AC49 (notification-click destination and lock-screen content).
 
 AC54 and AC47 require real devices. The absence of an automated reference does not by itself prove that a feature is missing, and automation alone will not approve those cases.
@@ -54,7 +54,8 @@ Examples of partial coverage that need stronger checks:
 - AC38 currently checks preservation of an incompatible stored format, not a running-app update with retained data and pending operations.
 - AC31 is now P2: the retained prototype checks server-side conflict retention, not the complete two-session resolution flow.
 - AC40 checks invalid calendar/queue lead times and a browser change to 60 minutes. The complete preset/invalid-field reminder-settings flow still needs explicit coverage.
-- AC67/AC68 now include per-image unknown/manual times, automatic simulated-frame times and metadata surviving backup; the full corrected multi-capture timeline/revision scenario remains open.
+- AC10 now checks local date/time week selection and historical joining-date defaults; its full late-capture/late-entry timestamp scenario remains open.
+- AC67/AC68 include per-image unknown/manual times, automatic simulated-frame times and metadata surviving backup; the full corrected multi-capture timeline/revision scenario remains open.
 - AC55/AC56/AC90 have real-engine tests on fictional screenshots, simulated video frames and clipboard inputs, plus four real game screenshots processed locally. The remaining representative corpus, native window selection, mobile clipboard permissions and full 20-image boundary/recovery checks remain open.
 - AC74 is now P2: the retained prototype triggers thirty edit events around one pending operation, not thirty real result edits and multiple tabs.
 - AC80 checks contact search, not all search keys and ordering invariants.
@@ -166,8 +167,18 @@ Stylized names and ambiguous letters still need manual verification. Four screen
 
 ## Public test deployment
 
-The production environment was published on 28 October 2026 at https://snap-alliance-manager.snap-alliance-manager.workers.dev. Current deployment version: ed5820d2-ee82-4a88-af3b-78491629866b. Both D1 migrations were applied to a newly created empty database. Local database/origin settings remain unchanged. No billing upgrade or real player import was performed.
+The production environment was published on 28 October 2026 at https://snap-alliance-manager.snap-alliance-manager.workers.dev. Current deployment version: 4775bcbc-dc22-43cd-97a0-0bf478a239b4. Both D1 migrations were applied to a newly created empty database. Local database/origin settings remain unchanged. No billing upgrade or real player import was performed.
 
 Read-only HTTP verification returned 200 for the application, PWA manifest, OCR worker, OCR language model and public configuration. CSP retains same-origin loading and WebAssembly support. No production test records or push subscriptions were created.
 
 Production Web Push credentials were not created: that persistent credential setup needs separate authorization. The public configuration reports pushAvailable=false, and calendar export remains available. The prepared setup helper is not executed by builds/deploys and refuses to replace existing keys. Native notifications, physical-device installation, calendar-client behavior and load/CPU measurement remain pending.
+
+## Validation and week-selection correction
+
+A reviewed collection could previously remain only in component state while Validate week approved the older empty saved week. Validation now saves the current review and validates it in one commit. Empty weeks are rejected even with the incomplete option; zero is valid. Pending rows and conflicting totals have actionable blockers and a return-to-review action. Drafts preserve unresolved rows. Saved collections can each be reopened, and successful validation focuses a visible count confirmation with an overview link.
+
+The overview now shows validated current-week totals immediately, with an explanation that historical averages/misses wait until the week ends. The former Another date field is labelled Find week by date, uses local date/time, and does not alter capture timestamps. Unsaved images/reviews are protected when changing weeks. New players added during a historical collection default to that selected week’s start, with an editable joining date; existing membership data is never rewritten automatically. Scores outside recorded membership dates remain visible with an explanatory warning.
+
+The browser journey imports a fictional roster, reads an image, validates without a separate draft save, verifies saved results and current totals, reloads and checks an exported backup. Empty/unassigned paths stay blocked; the review survives cancellation. Date selection is checked across the reset in Asia/Kolkata. No real player data or production test records are used.
+
+The validation correction is deployed at the same public URL. Read-only HTTP verification confirmed the current generated index/asset returned 200. All 51 browser checks passed, then the nine affected validation checks passed again after the confirmation-focus refinement. Production Web Push remains unconfigured; no credential or billing changes were made.

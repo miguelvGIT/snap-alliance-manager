@@ -63,7 +63,11 @@ export default function Overview({
           : (b.average ?? -1) - (a.average ?? -1),
     );
   const latest = data.weeks
-    .filter((w) => w.status === 'validated' && Date.parse(w.end) <= Date.now())
+    .filter(
+      (w) =>
+        w.status === 'validated' &&
+        Object.values(w.results).some((r) => typeof r.points === 'number'),
+    )
     .sort((a, b) => b.start.localeCompare(a.start))[0];
   const total = latest
     ? Object.values(latest.results).reduce((sum, result) => sum + (result.points ?? 0), 0)
@@ -115,6 +119,12 @@ export default function Overview({
               completed weeks <ArrowRight size={14} />
             </button>
           </div>
+          {latest && Date.parse(latest.end) > Date.now() && (
+            <p>
+              Scores are saved for the current week. Averages and missed minimums update after the
+              week ends.
+            </p>
+          )}
         </div>
         <div className={s.attentionPanel}>
           <ShieldCheck size={19} />

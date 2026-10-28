@@ -38,6 +38,8 @@ Tests use fictional data and isolated contexts. No production account or databas
 Enter your existing alliance's name and minimum/target, then select **Start**. You can also import a complete backup.
 
 - **Record scores:** add multiple screenshots or paste clipboard images without saving a file. Read them locally, check total points against the images, and confirm assignments. Compatible desktop browsers can capture visible game rows while you scroll the authorized window. Unknown and missing names are highlighted separately; you confirm name changes and new players.
+- **Validate a week:** validation saves the current reviewed collection and the week together. Unassigned rows and empty weeks are blocked with instructions. Save a draft to finish assignments later. Success shows the saved-score count and a link to the overview; current-week totals appear immediately while historical averages/misses wait until the week ends.
+- **Find week by date:** an optional shortcut using local date and time to select the week. It does not set the capture time. Changing weeks asks before discarding unsaved images/reviews.
 - **Overview:** averages and missed minimums use all eligible history; the table shows eight recent weeks. A missing score stays distinct from zero.
 - **History:** review weeks, collection times and revision reasons.
 - **Settings:** change defaults, export/import and choose reminders.

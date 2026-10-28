@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, AlertTriangle, Save, Check, ImagePlus } from 'lucide-react';
 import {
   type Dataset,
@@ -61,6 +61,21 @@ export default function WeekEditor({
   const [references, setReferences] = useState<ImageInput[]>([]);
   const [intakeVersion, setIntakeVersion] = useState(0);
   const [preview, setPreview] = useState<{ name: string; url: string } | null>(null);
+  const [intakePending, setIntakePending] = useState(false);
+  const [nextWeek, setNextWeek] = useState<string | null>(null);
+  const [weekLookup, setWeekLookup] = useState('');
+  const [validating, setValidating] = useState(false);
+  const [validatedNotice, setValidatedNotice] = useState(false);
+  const noticeRef = useRef<HTMLDivElement>(null);
+  const reviewRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!notice) return;
+    const frame = requestAnimationFrame(() => {
+      noticeRef.current?.focus({ preventScroll: true });
+      noticeRef.current?.scrollIntoView({ block: 'start' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [notice]);
   const locale = navigator.language,
     zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const options = useMemo(() => {
@@ -75,7 +90,36 @@ export default function WeekEditor({
   const base = ensureWeek(data, selected);
   const week = base.weeks.find((w) => w.id === selected)!;
   const review = collection ? nameReview(data, week, collection) : null;
-  const roster = expectedPlayers(data, week);
+  const expected = expectedPlayers(data, week);
+  const roster = data.players.filter(
+    (player) => expected.some((p) => p.id === player.id) || player.id in week.results,
+  );
+  const outsideMembership = roster.filter((player) => !expected.some((p) => p.id === player.id));
+  const reviewCollections = collection
+    ? [...week.collections.filter((c) => c.id !== collection.id), collection]
+    : week.collections;
+  const pendingRows = reviewCollections
+    .flatMap((c) => c.lines)
+    .filter((line) => line.state === 'pending').length;
+  const conflicts = reviewCollections
+    .flatMap((c) => c.lines)
+    .some((line) => line.state === 'confirmed' && line.pointsConflict);
+  const validationScores = new Map(
+    Object.entries(week.results)
+      .filter(([, r]) => !collection || r.collectionId !== collection.id)
+      .map(([id, r]) => [id, r.points]),
+  );
+  collection?.lines
+    .filter((line) => line.state === 'confirmed' && line.playerId)
+    .forEach((line) =>
+      validationScores.set(line.playerId!, line.pointsConflict ? null : line.points),
+    );
+  const scoreCount = [...validationScores.values()].filter(
+    (points) => typeof points === 'number',
+  ).length;
+  const savedScoreCount = Object.values(week.results).filter(
+    (r) => typeof r.points === 'number',
+  ).length;
   const observedTimes = week.collections
     .flatMap((c) => (c.observations ? c.observations.map((o) => o.observedAt) : [c.observedAt]))
     .filter((value): value is string => value !== null)
@@ -83,6 +127,7 @@ export default function WeekEditor({
   const run = async (action: () => Promise<void>) => {
     setError('');
     setNotice('');
+    setValidatedNotice(false);
     try {
       await action();
     } catch (e) {
@@ -101,6 +146,29 @@ export default function WeekEditor({
     setReferences([]);
     setError('');
     setNotice('');
+    setNextWeek(null);
+    setIntakePending(false);
+  };
+  const requestWeek = (id: string) => {
+    if (id === selected) return;
+    if (collection || intakePending) setNextWeek(id);
+    else chooseWeek(id);
+  };
+  const returnToReview = () => {
+    if (!collection) {
+      const saved =
+        week.collections.find((c) => c.lines.some((line) => line.state === 'pending')) ??
+        week.collections.at(-1);
+      if (saved) {
+        setCollection(structuredClone(saved));
+        setReferences([]);
+      }
+    }
+    setValidate(false);
+    requestAnimationFrame(() => {
+      reviewRef.current?.focus();
+      reviewRef.current?.scrollIntoView({ block: 'start' });
+    });
   };
   return (
     <>
@@ -113,7 +181,13 @@ export default function WeekEditor({
       </div>
       <div className={s.weekScope}>
         <Field label="Week">
-          <select value={selected} onChange={(e) => chooseWeek(e.target.value)}>
+          <select
+            value={selected}
+            onChange={(e) => {
+              setWeekLookup('');
+              requestWeek(e.target.value);
+            }}
+          >
             {options.map((w) => (
               <option value={w.id} key={w.id}>
                 {weekLabel(w, locale, zone)}
@@ -121,11 +195,16 @@ export default function WeekEditor({
             ))}
           </select>
         </Field>
-        <Field label="Another date">
+        <Field
+          label="Find week by date"
+          hint="Optional shortcut using local date and time. This selects the week, not the capture time."
+        >
           <input
-            type="date"
+            type="datetime-local"
+            value={weekLookup}
             onChange={(e) => {
-              if (e.target.value) chooseWeek(weekBounds(e.target.value + 'T19:00:00Z').id);
+              setWeekLookup(e.target.value);
+              if (e.target.value) requestWeek(weekBounds(fromLocalInput(e.target.value)).id);
             }}
           />
         </Field>
@@ -141,11 +220,12 @@ export default function WeekEditor({
         </div>
       )}
       {notice && (
-        <p role="status" className={s.success}>
-          {notice}
-        </p>
+        <div role="status" className={s.success} ref={noticeRef} tabIndex={-1}>
+          <p>{notice}</p>
+          {validatedNotice && <a href="#overview">View overview</a>}
+        </div>
       )}
-      <section className={s.panel}>
+      <section className={s.panel} ref={reviewRef} tabIndex={-1} aria-label="Score review">
         <div className={s.panelHeading}>
           <div>
             <h2>Score collection</h2>
@@ -156,6 +236,7 @@ export default function WeekEditor({
         <ImageIntake
           key={selected + ':' + intakeVersion}
           hidden={!!collection}
+          onPendingChange={setIntakePending}
           onReview={(result, images) => {
             setReferences(images);
             setCollection(result);
@@ -278,6 +359,12 @@ export default function WeekEditor({
                 {collection.lines.filter((l) => l.state === 'pending').length} pending rows
               </span>
             </div>
+            {collection.lines.some((line) => line.state === 'pending') && (
+              <Notice>
+                Assign each row to an existing player, add it with New player, or exclude it.
+                Unassigned rows stay in the draft and cannot be validated.
+              </Notice>
+            )}
             <div className={s.reviewList}>
               {collection.lines.map((line, index) => {
                 const player = data.players.find((p) => p.id === line.playerId);
@@ -456,7 +543,9 @@ export default function WeekEditor({
                       }),
                     );
                     setNotice(
-                      'Collection saved as a draft. Validate it when you finish the review.',
+                      collection.lines.some((line) => line.state === 'pending')
+                        ? 'Draft saved. Reopen the collection to assign or exclude pending rows before validating.'
+                        : 'Collection saved as a draft. Validate it when you finish the review.',
                     );
                     setCollection(null);
                     setReferences([]);
@@ -466,7 +555,10 @@ export default function WeekEditor({
                   })
                 }
               >
-                <Save size={16} /> Save collection
+                <Save size={16} />{' '}
+                {collection.lines.some((line) => line.state === 'pending')
+                  ? 'Save draft'
+                  : 'Save collection'}
               </button>
               <button
                 onClick={() =>
@@ -525,17 +617,30 @@ export default function WeekEditor({
                 ? 'Incomplete week · only known scores are assessed.'
                 : 'Only completed, validated weeks count toward the metrics.'}
             </p>
+            <p>
+              {savedScoreCount} saved {savedScoreCount === 1 ? 'score' : 'scores'} ·{' '}
+              {number(Object.values(week.results).reduce((sum, r) => sum + (r.points ?? 0), 0))}{' '}
+              points
+            </p>
           </div>
           <button
             className={s.primary}
             onClick={() => {
               setValidate(true);
+              setError('');
               setReason('');
             }}
           >
             Validate week
           </button>
         </div>
+        {outsideMembership.length > 0 && (
+          <Notice tone="warning">
+            These scores are saved, but the players’ membership dates do not cover this week:{' '}
+            {outsideMembership.map((p) => p.name).join(', ')}. Check their joining dates in Players
+            before expecting historical metrics to include them.
+          </Notice>
+        )}
         {!roster.length ? (
           <p className={s.emptyLine}>Players appear here after they have been added or assigned.</p>
         ) : (
@@ -625,6 +730,15 @@ export default function WeekEditor({
                 ? 'automatic'
                 : 'not specified'}{' '}
             · Entered: {dateTime(c.createdAt)}
+            <button
+              onClick={() => {
+                setCollection(structuredClone(c));
+                setReferences([]);
+                requestAnimationFrame(() => reviewRef.current?.scrollIntoView({ block: 'start' }));
+              }}
+            >
+              Review saved collection
+            </button>
             {c.observations && (
               <ul>
                 {c.observations.map((o) => (
@@ -694,7 +808,7 @@ export default function WeekEditor({
                     checked={associate.rename}
                     onChange={(e) => setAssociate({ ...associate, rename: e.target.checked })}
                   />{' '}
-                  I confirm the current name changed to Â«{associate.line.name}Â»
+                  I confirm the current name changed to "{associate.line.name}"
                 </label>
               )}
             </>
@@ -725,6 +839,7 @@ export default function WeekEditor({
         <PlayerForm
           data={data}
           initialName={collection?.lines.find((line) => line.id === newLine)?.name}
+          initialJoinedAt={week.start}
           onClose={() => setNewLine(null)}
           onSave={async (next, id) => {
             await commit(next);
@@ -816,7 +931,32 @@ export default function WeekEditor({
       {validate && (
         <Modal title="Validate week" onClose={() => setValidate(false)}>
           <p>{weekLabel(week, locale, zone)}</p>
-          <p>The current week counts toward metrics only after it ends.</p>
+          <p>
+            {scoreCount} {scoreCount === 1 ? 'score' : 'scores'} ready to save and validate.
+          </p>
+          {collection && <p>Your current review will be saved together with this validation.</p>}
+          {Date.parse(week.end) > Date.now() && (
+            <p>
+              Scores appear in the overview now. Averages and missed minimums update after this week
+              ends.
+            </p>
+          )}
+          {pendingRows > 0 && (
+            <Notice tone="warning">
+              {pendingRows} {pendingRows === 1 ? 'row still needs' : 'rows still need'} a player
+              assignment or explicit exclusion. Use Assign manually or New player in the review.
+            </Notice>
+          )}
+          {!pendingRows && scoreCount === 0 && (
+            <Notice tone="warning">
+              No scores are ready. Read images and review the players and points before validating.
+            </Notice>
+          )}
+          {conflicts && (
+            <Notice tone="warning">
+              Choose or correct the different totals before validating.
+            </Notice>
+          )}
           {error && <Notice tone="error">{error}</Notice>}
           <label className={s.check}>
             <input
@@ -827,18 +967,67 @@ export default function WeekEditor({
             I confirm validation as incomplete if any data is missing
           </label>
           <footer>
-            <button onClick={() => setValidate(false)}>Cancel</button>
+            <button disabled={validating} onClick={returnToReview}>
+              Return to review
+            </button>
             <button
               className={s.primary}
+              disabled={validating || pendingRows > 0 || scoreCount === 0 || conflicts}
               onClick={() =>
                 run(async () => {
-                  await commit(validateWeek(base, selected, reason === 'incomplete'));
-                  setValidate(false);
-                  setNotice('Week validated.');
+                  setValidating(true);
+                  try {
+                    const reviewed = collection
+                      ? saveCollection(base, selected, collection, {
+                          reason: collectionReason,
+                          allowReplacement: replacePoints,
+                        })
+                      : base;
+                    await commit(validateWeek(reviewed, selected, reason === 'incomplete'));
+                    setValidate(false);
+                    setCollection(null);
+                    setReferences([]);
+                    setIntakeVersion((v) => v + 1);
+                    setCollectionReason('');
+                    setReplacePoints(false);
+                    setValidatedNotice(true);
+                    setNotice(
+                      `Week validated. ${scoreCount} ${scoreCount === 1 ? 'score' : 'scores'} saved on this device.${Date.parse(week.end) > Date.now() ? ' Averages and missed minimums update after this week ends.' : ''}`,
+                    );
+                  } finally {
+                    setValidating(false);
+                  }
                 })
               }
             >
               Confirm validation
+            </button>
+          </footer>
+        </Modal>
+      )}
+      {nextWeek && (
+        <Modal
+          title="Change week?"
+          onClose={() => {
+            setNextWeek(null);
+            setWeekLookup('');
+          }}
+        >
+          <p>
+            You have images or a score review that have not been saved. Keep editing to save them,
+            or discard them before changing weeks.
+          </p>
+          <footer>
+            <button
+              onClick={() => {
+                setNextWeek(null);
+                setWeekLookup('');
+              }}
+            >
+              Keep editing
+            </button>
+            <button className={s.primary} onClick={() => chooseWeek(nextWeek)}>
+              Discard and change week
             </button>
           </footer>
         </Modal>
