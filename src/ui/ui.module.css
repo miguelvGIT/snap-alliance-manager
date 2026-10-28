@@ -612,6 +612,10 @@
   border-top: 1px solid #2a2a2a;
   padding: 16px 0;
 }
+.reviewRow small {
+  display: block;
+  overflow-wrap: anywhere;
+}
 .reviewRow .field {
   margin-bottom: 4px;
 }
@@ -629,6 +633,33 @@
   display: flex;
   gap: 14px;
   overflow: auto;
+}
+.pasteArea {
+  padding: 20px;
+  margin: 18px 0;
+  border: 1px dashed var(--control);
+  color: var(--muted);
+  line-height: 1.6;
+}
+.imageIntake {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 24px;
+  margin: 24px 0;
+}
+.imageIntake figure {
+  margin: 0;
+  min-width: 0;
+}
+.imageIntake img {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  background: #080808;
+}
+.imageIntake figcaption {
+  overflow-wrap: anywhere;
+  margin: 8px 0 16px;
 }
 .imageReference figure {
   margin: 0;

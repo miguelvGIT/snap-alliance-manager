@@ -15,6 +15,8 @@ export const lineSchema = z.object({
   name: z.string().min(1),
   points: points.nullable(),
   rawPoints: z.string().optional(),
+  observationId: id.optional(),
+  ocrConfidence: z.number().min(0).max(100).optional(),
   playerId: id.nullable(),
   state: z.enum(['pending', 'confirmed', 'excluded']),
 });
@@ -25,6 +27,18 @@ export const collectionSchema = z.object({
   createdAt: stamp,
   complete: z.boolean(),
   lines: z.array(lineSchema),
+  observations: z
+    .array(
+      z.object({
+        id,
+        name: z.string(),
+        source: z.enum(['image', 'clipboard', 'screen']),
+        observedAt: stamp.nullable(),
+        timeSource: z.enum(['manual', 'automatic', 'unknown']),
+        rowsFound: z.number().int().nonnegative().optional(),
+      }),
+    )
+    .optional(),
 });
 export const exemptionSchema = z.object({
   kind: z.enum(['manual', 'partial-entry']),
@@ -116,7 +130,12 @@ export const datasetSchema = z
         if (collectionIds.has(c.id))
           ctx.addIssue({ code: 'custom', message: 'Duplicate collection' });
         collectionIds.add(c.id);
+        const observations = new Set(c.observations?.map((o) => o.id));
+        if (observations.size !== (c.observations?.length ?? 0))
+          ctx.addIssue({ code: 'custom', message: 'Duplicate image observation' });
         for (const line of c.lines) {
+          if (line.observationId && !observations.has(line.observationId))
+            ctx.addIssue({ code: 'custom', message: 'Image observation not found' });
           if (line.playerId && !seen.has(line.playerId))
             ctx.addIssue({ code: 'custom', message: 'Invalid player assignment' });
           if (line.state === 'confirmed' && !line.playerId)

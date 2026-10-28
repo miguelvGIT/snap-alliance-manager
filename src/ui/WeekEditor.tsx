@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Plus, ClipboardPaste, AlertTriangle, Save, Check, ImagePlus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Plus, AlertTriangle, Save, Check, ImagePlus } from 'lucide-react';
 import {
   type Dataset,
   type Week,
@@ -11,7 +11,6 @@ import {
 } from '../domain/model';
 import {
   ensureWeek,
-  makeCollection,
   nameReview,
   saveCollection,
   validateWeek,
@@ -32,6 +31,8 @@ import type { Commit } from './useAlliance';
 import { Modal, Field, Notice, number } from './Modal';
 import { PlayerForm } from './Players';
 import s from './ui.module.css';
+import ImageIntake from './ImageIntake';
+import type { ImageInput } from '../ocr/rows';
 export default function WeekEditor({
   data,
   commit,
@@ -42,10 +43,6 @@ export default function WeekEditor({
   initialWeek?: string;
 }) {
   const [selected, setSelected] = useState(initialWeek ?? weekBounds().id),
-    [text, setText] = useState(''),
-    [observed, setObserved] = useState(toLocalInput(nowISO())),
-    [unknownTime, setUnknownTime] = useState(false),
-    [complete, setComplete] = useState(false),
     [collection, setCollection] = useState<Collection | null>(null),
     [error, setError] = useState(''),
     [notice, setNotice] = useState(''),
@@ -56,11 +53,11 @@ export default function WeekEditor({
     [dispense, setDispense] = useState<Player | null>(null),
     [reason, setReason] = useState(''),
     [validate, setValidate] = useState(false),
-    [images, setImages] = useState<{ name: string; url: string }[]>([]),
     [correct, setCorrect] = useState<{ player: Player; value: string } | null>(null);
   const [collectionReason, setCollectionReason] = useState(''),
     [replacePoints, setReplacePoints] = useState(false);
-  useEffect(() => () => images.forEach((image) => URL.revokeObjectURL(image.url)), [images]);
+  const [references, setReferences] = useState<ImageInput[]>([]);
+  const [intakeVersion, setIntakeVersion] = useState(0);
   const locale = navigator.language,
     zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const options = useMemo(() => {
@@ -77,7 +74,7 @@ export default function WeekEditor({
   const review = collection ? nameReview(data, week, collection) : null;
   const roster = expectedPlayers(data, week);
   const observedTimes = week.collections
-    .map((c) => c.observedAt)
+    .flatMap((c) => (c.observations ? c.observations.map((o) => o.observedAt) : [c.observedAt]))
     .filter((value): value is string => value !== null)
     .sort();
   const run = async (action: () => Promise<void>) => {
@@ -98,7 +95,7 @@ export default function WeekEditor({
   const chooseWeek = (id: string) => {
     setSelected(id);
     setCollection(null);
-    setText('');
+    setReferences([]);
     setError('');
     setNotice('');
   };
@@ -149,91 +146,29 @@ export default function WeekEditor({
         <div className={s.panelHeading}>
           <div>
             <h2>Score collection</h2>
-            <p>One row per player: name, tab or semicolon, points.</p>
+            <p>Import screenshots or capture the game window, then review the results.</p>
           </div>
-          <ClipboardPaste size={18} />
+          <ImagePlus size={18} />
         </div>
-        {!collection ? (
-          <>
-            <Field label="Names and points">
-              <textarea
-                rows={6}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder={'Player name;2700\nAnother player;3500'}
-              />
-            </Field>
-            <div className={s.formGrid}>
-              <Field
-                label="Collection date and time"
-                hint="When these points were observed in the game."
-              >
-                <input
-                  type="datetime-local"
-                  value={observed}
-                  disabled={unknownTime}
-                  onChange={(e) => setObserved(e.target.value)}
-                />
-              </Field>
-              <div className={s.checkStack}>
-                <label className={s.check}>
-                  <input
-                    type="checkbox"
-                    checked={unknownTime}
-                    onChange={(e) => setUnknownTime(e.target.checked)}
-                  />{' '}
-                  I don't know when they were collected
-                </label>
-                <label className={s.check}>
-                  <input
-                    type="checkbox"
-                    checked={complete}
-                    onChange={(e) => setComplete(e.target.checked)}
-                  />{' '}
-                  The collected list is complete
-                </label>
-              </div>
-            </div>
-            <div className={s.actions}>
-              <button
-                className={s.primary}
-                disabled={!text.trim()}
-                onClick={() =>
-                  run(async () => {
-                    setCollection(
-                      makeCollection(text, unknownTime ? null : fromLocalInput(observed), complete),
-                    );
-                  })
-                }
-              >
-                Review names and points <ArrowNext />
-              </button>
-              <label className={s.fileButton}>
-                <ImagePlus size={16} /> View screenshots
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  className={s.srOnly}
-                  onChange={(e) => {
-                    images.forEach((i) => URL.revokeObjectURL(i.url));
-                    setImages(
-                      [...(e.target.files ?? [])].map((file) => ({
-                        name: file.name,
-                        url: URL.createObjectURL(file),
-                      })),
-                    );
-                  }}
-                />
-              </label>
-              {week.collections.length > 0 && (
-                <button onClick={() => setCollection(structuredClone(week.collections.at(-1)!))}>
-                  Reopen latest collection
-                </button>
-              )}
-            </div>
-          </>
-        ) : (
+        <ImageIntake
+          key={selected + ':' + intakeVersion}
+          hidden={!!collection}
+          onReview={(result, images) => {
+            setReferences(images);
+            setCollection(result);
+          }}
+        />
+        {!collection && week.collections.length > 0 && (
+          <button
+            onClick={() => {
+              setReferences([]);
+              setCollection(structuredClone(week.collections.at(-1)!));
+            }}
+          >
+            Reopen latest collection
+          </button>
+        )}
+        {collection && (
           <>
             <div className={s.panelHeading}>
               <div>
@@ -245,9 +180,12 @@ export default function WeekEditor({
                   · {collection.complete ? 'Complete list confirmed' : 'Partial collection'}
                 </p>
               </div>
-              <button onClick={() => setCollection(null)}>Back to entry</button>
+              <button onClick={() => setCollection(null)}>Back to images</button>
             </div>
-            <Field label="Collection time" hint="Leave blank if unknown; the entry time is kept.">
+            <Field
+              label="Collection time"
+              hint="An explicit change here applies to every image in this collection. Leave blank if unknown; the entry time is kept."
+            >
               <input
                 type="datetime-local"
                 value={collection.observedAt ? toLocalInput(collection.observedAt) : ''}
@@ -256,10 +194,42 @@ export default function WeekEditor({
                     ...collection,
                     observedAt: e.target.value ? fromLocalInput(e.target.value) : null,
                     timeSource: e.target.value ? 'manual' : 'unknown',
+                    observations: collection.observations?.map((o) => ({
+                      ...o,
+                      observedAt: e.target.value ? fromLocalInput(e.target.value) : null,
+                      timeSource: e.target.value ? 'manual' : 'unknown',
+                    })),
                   })
                 }
               />
             </Field>
+            {collection.observations && (
+              <details className={s.captureStamp}>
+                <summary>Image sources and capture times</summary>
+                <ul>
+                  {collection.observations.map((o) => (
+                    <li key={o.id}>
+                      {o.name} · {o.observedAt ? dateTime(o.observedAt) : 'Capture time unknown'} ·{' '}
+                      {o.timeSource}
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            {collection.observations?.some((o) => o.rowsFound === 0) && (
+              <Notice tone="warning">
+                No player rows were detected in:{' '}
+                {collection.observations
+                  .filter((o) => o.rowsFound === 0)
+                  .map((o) => o.name)
+                  .join(', ')}
+                . Check those images before confirming completeness.
+              </Notice>
+            )}
+            <Notice tone="warning">
+              Check every name and total score against your images. Text recognition can miss rows
+              or read a different column. Confirm completeness only after checking the whole table.
+            </Notice>
             <label className={s.check}>
               <input
                 type="checkbox"
@@ -326,6 +296,14 @@ export default function WeekEditor({
                           }
                         />
                       </label>
+                      {line.observationId && (
+                        <small>
+                          {collection.observations?.find((o) => o.id === line.observationId)?.name}
+                        </small>
+                      )}
+                      {line.ocrConfidence !== undefined && line.ocrConfidence < 85 && (
+                        <small className={s.warningText}>Uncertain reading · check this row</small>
+                      )}
                       <small className={line.state === 'pending' ? s.warningText : undefined}>
                         {line.state === 'excluded'
                           ? 'Excluded from assessment'
@@ -423,7 +401,8 @@ export default function WeekEditor({
                       'Collection saved as a draft. Validate it when you finish the review.',
                     );
                     setCollection(null);
-                    setText('');
+                    setReferences([]);
+                    setIntakeVersion((version) => version + 1);
                     setCollectionReason('');
                     setReplacePoints(false);
                   })
@@ -457,15 +436,20 @@ export default function WeekEditor({
             </div>
           </>
         )}
-        {images.length > 0 && (
-          <div className={s.imageReference}>
-            {images.map((i) => (
-              <figure key={i.url}>
-                <img src={i.url} alt={'Reference screenshot: ' + i.name} />
-                <figcaption>{i.name}</figcaption>
-              </figure>
-            ))}
-          </div>
+        {collection && references.length > 0 && (
+          <details open>
+            <summary>Reference images</summary>
+            <div className={s.imageReference}>
+              {references.map((image) => (
+                <figure key={image.id}>
+                  <a href={image.url} target="_blank" rel="noreferrer">
+                    <img src={image.url} alt={'Reference: ' + image.name} />
+                  </a>
+                  <figcaption>{image.name}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </details>
         )}
       </section>
       <section className={s.panel}>
@@ -562,7 +546,7 @@ export default function WeekEditor({
           </p>
         )}
         {week.collections.map((c) => (
-          <p className={s.captureStamp} key={c.id}>
+          <div className={s.captureStamp} key={c.id}>
             {c.observedAt
               ? 'Points collected at ' +
                 dateTime(c.observedAt) +
@@ -577,7 +561,18 @@ export default function WeekEditor({
                 ? 'automatic'
                 : 'not specified'}{' '}
             · Entered: {dateTime(c.createdAt)}
-          </p>
+            {c.observations && (
+              <ul>
+                {c.observations.map((o) => (
+                  <li key={o.id}>
+                    {o.name} · {o.source} ·{' '}
+                    {o.observedAt ? dateTime(o.observedAt) : 'Capture time unknown'} ·{' '}
+                    {o.timeSource}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         ))}
       </section>
       {data.revisions.filter((r) => r.entity === 'week/' + selected).length > 0 && (
@@ -635,7 +630,7 @@ export default function WeekEditor({
                     checked={associate.rename}
                     onChange={(e) => setAssociate({ ...associate, rename: e.target.checked })}
                   />{' '}
-                  I confirm the current name changed to «{associate.line.name}»
+                  I confirm the current name changed to Â«{associate.line.name}Â»
                 </label>
               )}
             </>
@@ -786,7 +781,4 @@ export default function WeekEditor({
       )}
     </>
   );
-}
-function ArrowNext() {
-  return <Check size={16} />;
 }

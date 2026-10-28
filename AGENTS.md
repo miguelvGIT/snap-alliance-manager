@@ -12,5 +12,5 @@
 - Tests use localhost, fictional data and local D1, never production.
 - Player IDs are internal. Never infer a rename, assignment or departure automatically.
 - Automatic sync and remote conflicts are P2; keep the prototype disabled in the shipped MVP. If future sync incurs service/call costs, require server-verified paid access through Ko-fi. Local use and file transfer stay free.
-- Full offline support, OCR/video and FUT01–FUT03 are outside this version.
+- Weekly intake uses local image OCR: multi-image selection and clipboard images are P0; authorized assisted screen capture on compatible PCs is P1. No bulk text-paste entry. Individual review corrections remain available. Never upload images or use paid OCR APIs. Saved-video import, full offline support and FUT01–FUT03 remain future scope.
 - Emulation does not prove native installation, real push receipt or a reset-week pilot.

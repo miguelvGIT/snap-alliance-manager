@@ -19,7 +19,7 @@ Faz as provas pequenas da etapa 0 do plano, com dados fictícios e serviços loc
 Segue as entregas da secção 10 do plano:
 
 1. Identidades, participações, semanas, mínimos e indicadores.
-2. Grelha, conferência manual de nomes, histórico, perfil e tabela inicial.
+2. Seleção de várias imagens, colagem direta de imagens sem ficheiro guardado, OCR local e captura assistida autorizada no PC compatível. Grelha de revisão, conferência manual de nomes, histórico, perfil e tabela inicial. Não criar importação em massa por texto; correções individuais continuam necessárias.
 3. Transferência manual completa e conservação.
 4. Redução de pedidos e preparação de formato/transporte. Sincronização automática e conflitos remotos são P2; não os desenvolver como bloqueadores do MVP.
 5. Lembretes e alternativa de calendário.
@@ -39,7 +39,7 @@ Quando se iniciar a sincronização P2, cumpre a política de lotes, diferenças
 - Uma mudança de nome confirmada mantém o mesmo ID e todo o histórico; guarda os nomes anteriores e os nomes observados nas recolhas. Importar um nome antigo não substitui o atual automaticamente. Sem registo é diferente de zero.
 - Selecionar dispensa manual pede sempre motivo antes de confirmar. Aplicar qualquer motivo preenchido, sem julgar a sua suficiência. Entrada parcial automática usa motivo do sistema.
 - Conservar mínimos históricos e momentos de recolha separados da introdução/importação.
-- Não inventar uma integração com Marvel Snap, resultados finais ou precisão de OCR.
+- Não inventar uma integração com Marvel Snap, resultados finais ou precisão de OCR. Imagens e motor OCR são locais; não enviar imagens/texto reconhecido para serviços externos. Validar com capturas reais antes do lançamento. A importação de vídeos guardados é P2.
 - Lembretes funcionam sem conta e sem sincronizar pontos; cada dispositivo autoriza notificações. O calendário é uma alternativa gerida pelo utilizador, não um feed remoto.
 
 ## 5. Preparação para crescer sem custos obrigatórios

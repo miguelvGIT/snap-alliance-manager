@@ -20,7 +20,7 @@ Ajudar gestores de alianças a preservar a contribuição semanal dos jogadores 
 | Sincronização | MVP por exportação/importação manual gratuita. Automática em P2; se implicar custos de chamadas/serviço, acesso pago via Ko-fi com validação no servidor. |
 | Reset | Terça-feira às 19:00 UTC, fixo e não editável. Converter para a hora e a data locais. |
 | Semanas | Identificadas pelo intervalo de datas no formato local; em Portugal: 20/10/26 - 27/10/26. |
-| Recolha | Introdução/colagem manual garantida. Automatização depende de viabilidade demonstrada. |
+| Recolha | Imagens com OCR local: selecionar várias ou colar da área de transferência sem guardar ficheiro. Captura assistida no PC compatível, iniciada pelo gestor. Sem importação em massa por texto. |
 | Lembretes | Antecedência configurável, Web Push em dispositivos autorizados e alternativa de calendário. |
 | Orçamento | Sem serviços pagos obrigatórios e sem ativação automática de faturação. |
 | Internet | Funcionamento totalmente offline fora do âmbito e do roadmap. Persistir dados localmente não significa suportar abertura/uso sem internet. |
@@ -38,7 +38,7 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 | RF01 | Registar uma aliança já existente no jogo e começar sem conta, com dados persistidos no dispositivo. Uma aliança inicial por gestor. |
 | RF02 | Registar jogadores com ID interno criado pela aplicação, nome atual, nomes anteriores, contacto social opcional e participações com entrada/saída. Não depender de um identificador do Marvel Snap. |
 | RF03 | Definir mínimo individual e meta da aliança, preservando os valores históricos por semana. |
-| RF04 | Introduzir/colar pontos numa grelha, associar jogadores, rever linhas ambíguas e usar capturas como referência. |
+| RF04 | Ler localmente uma ou várias imagens selecionadas ou coladas da área de transferência, sem exigir ficheiros guardados para colagem. Propor nomes e pontos numa grelha de revisão, conservando as imagens como referência durante essa sessão. Sem entrada em massa por texto; permitir correções individuais antes de guardar. |
 | RF05 | Registar a data/hora de recolha automaticamente quando determinável ou manualmente; conservar separadamente a introdução/importação. |
 | RF06 | Consultar todo o histórico. No início, mostrar nome no jogo, contacto social, incumprimentos, média e pontos das últimas oito semanas por defeito. |
 | RF07 | Exportar e importar todos os dados estruturados, com pré-visualização e confirmação antes de substituir dados existentes. |
@@ -58,6 +58,7 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 | RF16 | Enviar lembrete antes do reset, com antecedência configurável e autorização por dispositivo. |
 | RF17 | Permitir exportar um lembrete de calendário como caminho independente do envio remoto. |
 | RF19 | Pesquisar por nome atual, nome antigo ou contacto social e ordenar os indicadores. |
+| RF23 | Captura assistida no PC compatível: o gestor autoriza uma janela e percorre a tabela; recolher imagens visíveis com hora automática, terminar a partilha ao parar/sair e enviar as propostas para a mesma revisão local. Nos dispositivos incompatíveis, oferecer imagens/colagem. |
 
 ### 2.3. P2 — futuro
 
@@ -68,8 +69,7 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 | RF21 | Se a sincronização automática implicar custos de chamadas/serviço, restringir o acesso pago via Ko-fi, com direito de acesso validado no servidor. O uso local e a transferência manual permanecem gratuitos. |
 | RF22 | Permitir alternar entre modo escuro e modo claro nas Settings, guardando a preferência localmente. O modo claro é P2; não faz parte da implementação atual. |
 
-- OCR local para preencher capturas, se não passar a integrar a primeira versão após prova de conceito.
-- Captura assistida da janela do jogo no PC e importação de vídeo.
+- Importação de vídeos guardados. A seleção/colagem de imagens com OCR local e a captura assistida compatível já pertencem ao MVP.
 - Meios de sincronização direta ou com armazenamento escolhido pelo utilizador, descritos na secção 9.
 - Várias alianças por gestor, gestão partilhada e permissões.
 - CSV, relatórios, gráficos, taxa de cumprimento e incumprimentos consecutivos.
@@ -130,7 +130,9 @@ Uma semana pode ser validada explicitamente como incompleta, avaliando apenas os
 
 ## 4. Registo dos pontos e momento da recolha
 
-O fluxo garantido é introduzir ou colar os pontos, consultar capturas de referência, associar nomes e rever a grelha antes de validar a semana. Usar a coluna de contribuição acordada, sem a confundir com cubos ou missões.
+O fluxo de recolha usa imagens, não listas de texto: selecionar várias capturas ou colar imagens diretamente, executar OCR local e rever nomes/pontos antes de guardar. No PC compatível, a captura assistida recolhe imagens enquanto o gestor percorre a tabela. Usar Total na disposição Player / Cube / Bounty / Total; oferecer Player / Total para imagens recortadas e exigir conferência visual. Nunca somar sobreposições; valores divergentes para o mesmo jogador exigem escolha explícita. Nenhuma leitura confirma identidades ou completude automaticamente.
+
+PNG, JPEG e WebP são os formatos iniciais. Até 20 imagens de 20 MB por lote para limitar memória local, sem limitar utilizadores ou histórico; lotes adicionais podem integrar a mesma semana. Se uma imagem não tiver linhas reconhecidas, avisar. Imagem ilegível/formato inválido não altera os dados guardados. As imagens ficam em memória durante o ecrã; o histórico/backup conserva origem, nomes dos ficheiros, momentos e propostas, sem os próprios ficheiros.
 
 ### 4.1. Conferência dos nomes
 
@@ -147,11 +149,11 @@ Um nome anterior reaparecido também exige revisão da associação; não muda o
 
 O contacto Discord/X é opcional e pode ajudar o gestor a reconhecer a pessoa. Não é tratado como prova de identidade, chave única ou ligação automática à rede social. A aplicação não deteta uma mudança enquanto não existir uma recolha ou edição para comparar.
 
-### 4.2. Automatização condicionada
+### 4.2. Captura assistida e leitura local
 
 Não foi encontrada documentação pública oficial de uma API para a tabela da aliança. Não fazer o MVP depender dessa integração. Uma captura só contém as linhas vistas e pode estar incompleta. [Descrição oficial das alianças](https://marvelsnap.com/alliances-a-new-era-of-team-play-in-marvel-snap/)
 
-Quando se experimentar captura no PC, o utilizador escolhe a janela, autoriza e percorre a lista. O navegador exige interação/autorização; não prometer início silencioso semanal. OCR local com Tesseract.js é uma prova separada: medir precisão por campo, linhas omitidas/duplicadas e tempo de revisão em pelo menos 20 capturas representativas. Não anunciar precisão não medida. [Captura de ecrã](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia), [Tesseract.js](https://github.com/naptha/tesseract.js)
+Na captura assistida, o utilizador escolhe a janela, autoriza e percorre a lista. Recolher imagens a intervalos, omitir imagens exatamente repetidas e conservar o instante de cada imagem. O navegador exige interação/autorização; não prometer início silencioso semanal nem disponibilidade móvel universal. OCR local com Tesseract.js usa motor/modelo alojados com a aplicação, sem serviços de OCR ou APIs pagas. Antes do lançamento, medir precisão por campo, linhas omitidas/duplicadas e tempo de revisão em pelo menos 20 capturas reais representativas. Não anunciar precisão não medida. [Captura de ecrã](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getDisplayMedia), [Tesseract.js](https://github.com/naptha/tesseract.js)
 
 ### 4.3. Momento da recolha
 
@@ -290,7 +292,7 @@ Servir assets diretamente, sem executar o Worker em todas as aberturas e sem con
 | Ecrã | Conteúdo e ações |
 | --- | --- |
 | Início | Meta, jogadores que precisam de atenção, estado dos dados locais, tabela pedida, «Record scores» e apoio ao projeto. Sem cartão de destaque da hora do reset. |
-| Registo semanal | Escolher intervalo local, introduzir/colar/rever, ver capturas e indicar momento/completude da recolha. Destacar nomes desconhecidos e não encontrados; permitir associação manual, mudança de nome, criação confirmada ou adiamento. Validar apenas depois da revisão. Dispensa abre o pedido de motivo. |
+| Registo semanal | Escolher intervalo local, selecionar/colar imagens ou capturar a janela compatível, ler localmente e rever a grelha com imagens de referência. Indicar momentos/completude; destacar nomes desconhecidos e não encontrados. Permitir associação manual, mudança de nome, criação confirmada ou adiamento. Validar apenas depois da revisão. Dispensa abre o pedido de motivo. |
 | Histórico | Semanas por intervalo local; pontos, mínimos, motivos, recolhas, incompletude e revisões. |
 | Jogador | Nome atual/anteriores, contacto, participações, resultados e dispensas. Editar o nome manualmente com confirmação, mantendo o histórico. |
 | Definições | Mínimo/meta, reset só para consulta, lembretes/calendário, exportar/importar, última transferência. Ligação automática de dispositivos apenas em P2. |
@@ -334,15 +336,15 @@ Os trabalhos FUT01–FUT03 são futuros e não autorizam introduzir custos ou fo
 
 | Etapa | Entrega | Evidência necessária |
 | --- | --- | --- |
-| 0 | Provas dos riscos na PWA escolhida: persistência, ficheiros e Web Push/calendário. Ligação/conflitos e OCR são provas P2. | Observações reais e consumo medido. Teste de hardware indisponível permanece pendente. Não trocar a plataforma ou inventar acesso ao jogo. |
+| 0 | Provas dos riscos na PWA escolhida: persistência, imagens/OCR local, captura assistida, ficheiros e Web Push/calendário. Ligação/conflitos remotos são P2. | Observações reais e consumo medido. Teste de hardware indisponível permanece pendente. Não trocar a plataforma ou inventar acesso ao jogo. |
 | 1 | Identidade, semanas, mínimos e cálculos. | Limites do reset, datas locais, médias, dispensas e ausência de dados corretos. |
-| 2 | Registo, conferência de nomes, tabela inicial e histórico. | Uma semana pode ser registada/revista/consultada e corrigida; mudanças de nome manuais conservam o histórico e ausências não criam saídas ou zeros. |
+| 2 | Seleção/colagem de imagens, OCR local e captura assistida compatível, conferência de nomes, tabela inicial e histórico. | Uma semana pode ser recolhida/revista/consultada e corrigida; mudanças de nome manuais conservam o histórico e ausências não criam saídas ou zeros. |
 | 3 | Transferência manual e conservação. | Novo dispositivo recupera tudo sem conta/API de pontos; importação inválida/repetida/cancelada é segura. |
 | 4 | Preparação ESC01–ESC04 e recuperação de falhas dos lembretes. | Formato/IDs preservados e consumo medido. A sincronização automática e os seus conflitos são P2 e não bloqueiam o MVP. |
 | 5 | Lembretes e calendário ESC05. | Receção com a app fechada em dispositivos autorizados e ficheiro de calendário validado nos clientes alvo. |
 | 6 | Publicação HTTPS e piloto de uma semana real. | Casos P0/P1 aprovados, um reset observado, backup restaurado e verificação de privacidade/acessibilidade. |
 
-O MVP está concluído quando cumpre os requisitos P0/P1 e testes aplicáveis, com transferência manual completa. A sincronização automática é P2 e não é um critério de conclusão do MVP. OCR/captura/vídeo e FUT01–FUT03 só contam como entregues quando implementados e verificados. A implementação e os testes locais estão descritos em VALIDACAO.md. Nenhum deploy foi executado.
+O MVP está concluído quando cumpre os requisitos P0/P1 e testes aplicáveis, com recolha por imagens e transferência manual completa. OCR local e captura assistida compatível fazem parte destes critérios; precisão com capturas reais e compatibilidade têm de ser verificadas. A sincronização automática, importação de vídeo e FUT01–FUT03 são P2. A implementação e os testes locais estão descritos em VALIDACAO.md. Nenhum deploy foi executado.
 
 O URL de apoio já foi confirmado: https://ko-fi.com/tequilasunsett. Antes do lançamento ainda é necessário fornecer capturas para a prova de OCR, coluna exata dos pontos e versões/dispositivos/calendários suportados. A falta destas amostras não impede começar o núcleo local.
 

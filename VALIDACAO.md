@@ -8,8 +8,8 @@
 | --- | --- |
 | TypeScript build check | Passed |
 | Production frontend/PWA build | Passed |
-| Vitest | 67 tests passed: 34 domain, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API |
-| Playwright | 30 browser checks passed (27 full-suite checks plus three minimum-setting checks after correcting a test locator) across 1440×900, 768×1024 and 390×844; notification permission/subscription state is simulated |
+| Vitest | 73 distinct tests passed: 34 domain, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API and 6 OCR/cancellation. Full 72-test run plus the added cancellation check and targeted OCR rerun. |
+| Playwright | 39 browser checks passed on compiled local Cloudflare assets across 1440×900, 768×1024 and 390×844. After capture-cleanup/cancellation refinements, all 21 affected image/local checks passed again. Notification state and screen sharing are simulated; OCR runs the real packaged engine. |
 | Deferred P2 browser tests | Three sync-test skips; automatic sync is disabled in the shipped MVP |
 | Cloudflare package | Dry run passed; no upload/deployment |
 | Visual inspection | 0 failures; one small-text warning for secondary copy and metadata |
@@ -25,7 +25,7 @@ Earlier prototype evidence: the two-context test used approved invitations and i
 
 ## P0/P1 audit
 
-The specification has 49 P0 scenarios and 22 P1 scenarios: 71 mandatory acceptance scenarios. The automated test totals above are the last recorded executions, not 71 acceptance approvals. Automatic sync and remote conflicts are P2. The shipped MVP hides the prototype UI, starts no sync engine, and rejects direct sync API calls. A stored credential from the prototype does not trigger requests. Free file transfer stays available. Conditional paid Ko-fi access is planned for a future sync release; no payments are enabled.
+The specification has 51 P0 scenarios and 23 P1 scenarios: 74 mandatory acceptance scenarios. The automated test totals above are recorded executions, not 74 acceptance approvals. Image OCR/multi-image clipboard intake are P0; assisted capture on compatible PCs is P1. Automatic sync and remote conflicts are P2. The shipped MVP hides the prototype UI, starts no sync engine, and rejects direct sync API calls. A stored credential from the prototype does not trigger requests. Free file transfer stays available. Conditional paid Ko-fi access is planned for a future sync release; no payments are enabled.
 
 ### Correction status
 
@@ -39,11 +39,11 @@ The AC43/AC46 corrections passed local regression checks, including reload, serv
 
 ### Acceptance coverage still needed
 
-61 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
+65 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
 
-The following 10 mandatory scenarios have no explicit automated-test reference:
+The following nine mandatory scenarios have no explicit automated-test reference:
 
-- P0: AC10 (late entry of an earlier collection), AC11 (reference-image use and network privacy), AC13 (twenty historical weeks with eight visible), AC54 (published PWA installation), AC82 (explicit creation of a new identity during review).
+- P0: AC10 (late entry of an earlier collection), AC13 (twenty historical weeks with eight visible), AC54 (published PWA installation), AC82 (explicit creation of a new identity during review).
 - P1: AC24 (repeat-miss distinction), AC42 (drafts do not suppress reminders), AC45 (stale notification expiry), AC47 (real iPhone receipt), AC49 (notification-click destination and lock-screen content).
 
 AC54 and AC47 require real devices. The absence of an automated reference does not by itself prove that a feature is missing, and automation alone will not approve those cases.
@@ -54,7 +54,8 @@ Examples of partial coverage that need stronger checks:
 - AC38 currently checks preservation of an incompatible stored format, not a running-app update with retained data and pending operations.
 - AC31 is now P2: the retained prototype checks server-side conflict retention, not the complete two-session resolution flow.
 - AC40 checks invalid calendar/queue lead times and a browser change to 60 minutes. The complete preset/invalid-field reminder-settings flow still needs explicit coverage.
-- AC67/AC68 include a null collection-time assertion, not the full correction and multiple-collection-time transfer scenario.
+- AC67/AC68 now include per-image unknown/manual times, automatic simulated-frame times and metadata surviving backup; the full corrected multi-capture timeline/revision scenario remains open.
+- AC55/AC56/AC90 have real-engine tests on clear fictional screenshots, simulated video frames and clipboard inputs. Real game capture accuracy, native window selection, mobile clipboard permissions and the full 20-image boundary/recovery corpus remain open.
 - AC74 is now P2: the retained prototype triggers thirty edit events around one pending operation, not thirty real result edits and multiple tabs.
 - AC80 checks contact search, not all search keys and ordering invariants.
 - AC87 checks backup retention of a pending row; the browser sync test changes a name but does not assert the full rename-decision/alias/pending-row round trip.
@@ -64,6 +65,8 @@ Examples of partial coverage that need stronger checks:
 | Priority and requirement | Remaining evidence or setup |
 | --- | --- |
 | P0, RF10 / AC54 | Stable HTTPS deployment, real D1 binding, production origin and required secrets. The private GitHub repository stores source; it is not a deployed application. |
+| P0, RF04 / AC55, AC90 | Measure total-column/name recognition, omitted rows and review time on at least 20 representative real game screenshots. Verify multi-image selection and image clipboard actions on physical target devices. |
+| P1, RF23 / AC56 | Verify native game-window selection, scrolling and sharing termination in supported PC browsers. Simulated frames prove the local flow, not capture of the installed game. |
 | P0, RF07 / AC35, AC70, AC72 | File selection, saving and restoration on real iOS, Android and Windows devices, including local-only transfer and permission behavior. |
 | P2, RF08 / AC28; not an MVP gate | Automatic synchronization between physical PC/mobile devices against the deployed private service; browser contexts are the current evidence. |
 | P0, RF12 / ESC04 | Record actual Workers CPU and D1 reads/writes, plus the weekly reminder peak, without player data. The current scheduler processes at most ten due reminders per minute; queue delay and expiry need a load test and any required adjustment. |
@@ -72,13 +75,15 @@ Examples of partial coverage that need stronger checks:
 | P1, RF17 / AC76 | Import the generated file into target calendar clients and verify the actual recurrence/alarm, including changes and duplicate-event handling. |
 | PLANO stage 6 | Run a real collection/reset pilot, verify the contribution column, consult history afterward, restore a backup and check reminders. Automatic sync belongs to P2. |
 
-The next MVP work is the remaining local acceptance checks, followed by release/device evidence. The reminder corrections now have regression tests. The sync retry correction is deferred to P2. Deployment and physical-device checks come after those local corrections. Automatic sync/remote conflicts, conditional Ko-fi paid access, OCR/video, FUT01–FUT03, other-game support and localization remain future scope; AC29 remains retired.
+The next MVP work is real-image OCR validation and the remaining local acceptance checks, followed by release/device evidence. The reminder corrections have regression tests. Automatic sync/remote conflicts, conditional Ko-fi paid access, saved-video import, light mode, FUT01–FUT03, other-game support and localization remain P2; AC29 remains retired.
 
 ## Implemented local paths
 
 - Local use without an account; private IndexedDB data.
 - Players, previous names, contacts, membership periods and weekly records.
 - Separate unknown-name and missing-name warnings; manual assignment/renaming.
+- Multi-image selection, clipboard image events and the Clipboard button; local OCR proposals with total-column selection, reference images and manual correction. No bulk text-entry interface.
+- Assisted visible-frame capture in compatible desktop browsers with per-frame timestamps, explicit stopping and unmount cleanup. Native game/window capture remains a release check.
 - Historical minimums, zero/missing distinction, partial-entry exemptions and manually justified exemptions.
 - Eligible lifetime averages and missed-minimum counts; eight recent weeks on the overview.
 - Collection times distinct from entry/import times, with revisions.
@@ -93,6 +98,8 @@ The planning and acceptance files remain the behavior specification. The number 
 ## Resource evidence and limits
 
 Local use and file transfer made zero point/reminder API calls in the browser test. Static asset requests are separate.
+
+The image test observed no external HTTP(S) requests and no POST/PUT requests while importing/reading images on compiled local Cloudflare assets. Worker/engine/model files came from that same origin under the shipped CSP with `wasm-unsafe-eval`. The generated OCR directory has 21 files totaling 56,290,333 bytes; the largest is 10,923,060 bytes. A browser loads its selected engine variant, not every variant at first use. No image bytes or OCR result bodies go to the backend. Generated files are ignored in Git and recreated from locked packages at build time.
 
 An earlier retained P2 prototype debounce test generated thirty edit events and one exchange after the five-second pause. Hidden sessions made no polling calls. Three failed attempts preserved the outbox and stopped repeated retries.
 

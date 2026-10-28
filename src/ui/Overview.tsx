@@ -177,7 +177,10 @@ export default function Overview({
           <div className={s.empty}>
             <ClipboardList size={30} />
             <h2>Your history starts here</h2>
-            <p>Paste the points table or add your players. Your data stays on this device.</p>
+            <p>
+              Import screenshots of the score table or add your players. Your data stays on this
+              device.
+            </p>
             <button className={s.primary} onClick={() => navigate('week')}>
               Record your first week <ArrowRight size={16} />
             </button>

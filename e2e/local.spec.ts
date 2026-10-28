@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { fixture } from '../tests/fixtures';
 import { exportBackup } from '../src/domain/transfer';
+import { scoreImage } from './image-fixture';
 async function create(page: Page) {
   await page.clock.install({ time: new Date('2026-10-28T12:00:00Z') });
   await page.goto('/');
@@ -52,11 +53,20 @@ test('AC20 AC66: a dispensa pede sempre motivo antes de confirmar', async ({ pag
   await expect(ana.locator('td').nth(1)).toHaveText(/1\s?000/);
 });
 test('AC81 AC84 AC04: deteta diferença e só associa depois de confirmação', async ({ page }) => {
+  test.setTimeout(120000);
   await importFixture(page);
   await page.goto('/#week');
-  await page.getByLabel('Names and points').fill('SnapNovo;3000\nBruno;2700');
-  await page.getByLabel('The collected list is complete').check();
-  await page.getByRole('button', { name: 'Review names and points' }).click();
+  await page.getByLabel('Add images', { exact: true }).setInputFiles({
+    name: 'scores.png',
+    mimeType: 'image/png',
+    buffer: await scoreImage(page, [
+      ['SnapNovo', '3000'],
+      ['Bruno', '2700'],
+    ]),
+  });
+  await page.getByRole('button', { name: 'Read image', exact: true }).click();
+  await expect(page.getByLabel('I confirm this list is complete')).toBeVisible({ timeout: 90000 });
+  await page.getByLabel('I confirm this list is complete').check();
   await expect(page.getByText('Unknown name', { exact: true })).toBeVisible();
   await expect(page.getByText(/Name not found in the collected list:/)).toContainText('Ana');
   await page.getByRole('button', { name: 'Assign manually' }).first().click();
@@ -66,6 +76,7 @@ test('AC81 AC84 AC04: deteta diferença e só associa depois de confirmação', 
   await page.getByRole('button', { name: 'Confirm recognized current names' }).click();
   await page.getByRole('button', { name: 'Save collection', exact: true }).click();
   await expect(page.getByText(/Collection saved as a draft/)).toBeVisible();
+  await expect(page.getByLabel('Capture time · image 1')).toHaveCount(0);
   await page.goto('/#overview');
   await expect(page.getByText('SnapNovo', { exact: true })).toBeVisible();
   await expect(page.getByText('ana.discord', { exact: true })).toBeVisible();

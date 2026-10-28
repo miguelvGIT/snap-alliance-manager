@@ -15,3 +15,5 @@ New installations are empty. Fictional fixtures are used only in isolated tests.
 Minimum changes belong in Settings. The weekly editor displays the applied minimum without an edit action. Settings separates the default for new weeks from a collapsed saved-week correction form with a required reason.
 
 Light mode is P2: a future Settings choice between dark and light, persisted locally. The current version keeps the existing dark theme.
+
+Score intake offers Add images, Paste images and compatible desktop capture. A focusable paste area explains clipboard use without requiring a saved file. Image previews retain separate capture-time fields; a layout selector explains the rightmost Total column. Reading has progress, cancellation and recoverable errors. Review retains source images, uncertain-row warnings and manual assignment; recognition never confirms completeness or identity.

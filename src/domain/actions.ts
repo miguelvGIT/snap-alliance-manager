@@ -138,7 +138,12 @@ export function makeCollection(
   };
 }
 export function nameReview(data: Dataset, week: Week, collection: Collection) {
-  const expected = expectedPlayers(data, week, collection.observedAt);
+  const times = collection.observations?.map((o) => o.observedAt) ?? [collection.observedAt];
+  const expected = [
+    ...new Map(
+      times.flatMap((time) => expectedPlayers(data, week, time)).map((p) => [p.id, p]),
+    ).values(),
+  ];
   const confirmed = new Set(
     collection.lines.filter((line) => line.state === 'confirmed').map((line) => line.playerId),
   );

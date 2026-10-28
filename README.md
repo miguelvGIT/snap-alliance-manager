@@ -35,7 +35,7 @@ Tests use fictional data and isolated contexts. No production account or databas
 
 Enter your existing alliance's name and minimum/target, then select **Start**. You can also import a complete backup.
 
-- **Record scores:** paste names and points, specify collection time, and review assignments. Unknown and missing names are highlighted separately. You confirm name changes and new players.
+- **Record scores:** add multiple screenshots or paste clipboard images without saving a file. Read them locally, check total points against the images, and confirm assignments. Compatible desktop browsers can capture visible game rows while you scroll the authorized window. Unknown and missing names are highlighted separately; you confirm name changes and new players.
 - **Overview:** averages and missed minimums use all eligible history; the table shows eight recent weeks. A missing score stays distinct from zero.
 - **History:** review weeks, collection times and revision reasons.
 - **Settings:** change defaults, export/import and choose reminders.
@@ -43,6 +43,14 @@ Enter your existing alliance's name and minimum/target, then select **Start**. Y
 - **Support the project:** opens https://ko-fi.com/tequilasunsett without player data.
 
 Local use creates no account and uploads no tables. Complete file transfer is free and available in the MVP. Automatic sync is P2 and disabled in the shipped app and API. Its retained local prototype is not a released feature. Future sync that incurs service/call costs will require server-verified paid access through Ko-fi; payment integration, price and access duration are not implemented. Backups exclude credentials and push subscriptions.
+
+## Image intake
+
+PNG, JPEG and WebP are supported, up to 20 images per batch and 20 MB per image. Paste into the marked area or use **Paste images**; clipboard permission depends on the browser. **Capture game window** requires a compatible desktop browser and an explicit window selection. Scroll slowly, then stop capture and read the collected images. It cannot start silently at the weekly reset. Saved-video import remains P2.
+
+The OCR worker, WebAssembly engine and English model are copied from locked dependencies by the dev/build/browser-test scripts into ignored `public/ocr/`. They load from this app's origin on first use; images and recognized names/scores are never sent to an OCR service. The model recognizes English/Latin text; stylized names and other scripts can need correction. Real-game accuracy is not yet measured.
+
+Uploads and pasted images start with an unknown capture time. Set it if known; live frames record their actual capture time. Each row retains its image source. Overlapping rows are never summed and conflicting totals must be resolved. Images remain in memory while the weekly screen is open; backups contain structured proposals and source/time metadata, not image files.
 
 ## Reminders
 
@@ -62,6 +70,7 @@ Wrangler does not fire Cron automatically during local development. Its local sc
 - `src/data`: IndexedDB, atomic replacement and ordered outbox.
 - `src/sync`: transport contract, HTTP implementation, batching and conflicts.
 - `src/ui`: overview, weekly review, players and settings.
+- `src/ocr`: local image reading and coordinate-based row proposals.
 - `worker`: private API, D1 migration and reminder scheduler.
 - `tests`, `e2e`: domain, persistence, API and browser checks.
 

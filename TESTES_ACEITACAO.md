@@ -68,10 +68,10 @@ Arredondar apenas a apresentação da média a duas casas; usar o valor original
 
 | ID | Prioridade | Dado / Quando | Então — resultado observável | Verificação |
 | --- | --- | --- | --- | --- |
-| AC07 | P0 | Quando se cola uma lista válida de nomes e pontos numa semana. | Surge uma pré-visualização; o gestor revê as associações e confirma os valores antes da validação semanal. | Automático. |
+| AC07 | P0 | Quando se selecionam ou colam imagens da tabela numa semana e se executa a leitura local. | Surge uma grelha de propostas; o gestor revê as associações e os valores com as imagens antes de guardar/validar. Não existe importação em massa por texto. | Automático com motor OCR real e imagens fictícias; capturas reais antes do lançamento. |
 | AC08 | P0 | Dadas 30 linhas para rever, quando existem nomes desconhecidos, valores ambíguos ou linhas sem pontos. | As linhas são assinaladas; é possível corrigir ou marcar «sem registo». Nenhuma ambiguidade vira zero silenciosamente. | Automático. |
-| AC09 | P0 | Dada uma semana já registada, quando se colam novamente as mesmas linhas. | Não surgem duplicados nem soma de pontos; valores divergentes pedem revisão. | Automático. |
-| AC11 | P0 | Quando o gestor abre capturas de referência e introduz os pontos. | Pode consultar as imagens e rever a grelha; os ficheiros não são enviados para serviços de OCR ou armazenamento na nuvem. | Automático de rede + manual de utilização. |
+| AC09 | P0 | Dada uma semana já registada, quando se leem novamente imagens com as mesmas linhas ou sobreposições. | Não surgem duplicados nem soma de pontos; valores divergentes pedem revisão. | Automático. |
+| AC11 | P0 | Quando o gestor seleciona/cola imagens, executa OCR e revê as propostas. | Pode consultar as imagens e rever a grelha; motor/modelo são do mesmo alojamento da PWA. Imagens/texto reconhecido não são enviados para serviços de OCR ou armazenamento na nuvem. | Automático de rede no build compilado + manual de utilização. |
 | AC10 | P0 | Dada uma captura recolhida às 18:55 UTC de 27/10, quando é introduzida às 19:10 e o utilizador indica manualmente a data/hora de recolha. | Pode ser atribuída à semana «20/10/26 - 27/10/26» em Portugal; mostra recolha 18:55 com indicação manual e introdução 19:10 registada pela aplicação. O histórico indica que os pontos foram observados cinco minutos antes do reset, sem presumir pontos ganhos posteriormente. | Automático. |
 | AC67 | P0 | Dada introdução manual ou importação sem informação fiável do momento da recolha, quando se preenche ou corrige a data/hora, ou se declara que é desconhecida. | Permite indicação manual na hora local, guarda o instante UTC e a origem manual, conserva a indicação anterior nas revisões e a hora de introdução separada. Se desconhecida, mostra «não indicada» e não usa a hora do ficheiro, importação ou OCR como se fosse a da recolha. | Automático. |
 | AC68 | P0 | Dadas capturas da mesma semana feitas às 18:54 e 18:56, quando são introduzidas às 19:10 e mais tarde sincronizadas ou restauradas de backup. | Mantém os momentos de cada recolha associados aos respetivos resultados e mostra o intervalo conhecido 18:54–18:56. A importação às 19:10 não substitui esses momentos; os metadados conservam-se na sincronização e no backup. | Automático. |
@@ -84,6 +84,9 @@ Arredondar apenas a apresentação da média a duas casas; usar o valor original
 | AC27 | P0 | Dada uma semana com alguns resultados desconhecidos, quando o gestor confirma a validação incompleta. | Os resultados conhecidos podem ser avaliados, mas os restantes mantêm «sem registo» e a semana conserva o aviso de incompletude. | Automático. |
 | AC02 | P0 | Dado um mínimo de 2 700, quando se registam 2 699, 2 700 e 2 701 numa semana elegível. | Apenas o primeiro resultado é incumprimento. | Automático, regra e interface. |
 | AC03 | P0 | Quando se introduzem pontos negativos, frações, texto inválido ou mínimo negativo. | A aplicação explica o problema e não guarda esses valores como resultados válidos. Zero e mínimo zero são aceites. | Automático. |
+| AC55 | P0 | Dadas capturas sobrepostas com várias colunas, quando o OCR é executado localmente. | Propõe a coluna Total da disposição selecionada, assinala dúvidas e imagens sem linhas, e não soma repetições. Há revisão antes de guardar/validar; medir os erros e omissões com capturas reais. | Motor real em teste, corpus anotado e inspeção de rede. |
+| AC56 | P1 | Dada uma janela de jogo autorizada num PC compatível, quando o gestor percorre a tabela durante a captura assistida. | Só as imagens vistas são propostas; momentos automáticos por imagem/linha são distintos do processamento. Divergências exigem revisão. Parar, sair ou o limite do lote interrompe a partilha. Recusa/incompatibilidade permite selecionar/colar imagens. | Fonte de vídeo simulada + teste manual por navegador e corpus real. |
+| AC90 | P0 | Quando se selecionam várias imagens simultaneamente, se cola uma imagem da área de transferência sem ficheiro guardado ou se usa Paste images; e quando uma imagem é inválida. | Todas entram no mesmo lote de revisão com origem e hora separadas; uploads/colagens não inventam hora da captura. Erros não alteram dados guardados e permitem repetir. Imagens não são persistidas nem incluídas no backup; propostas/metadados são preservados. | Automático nos dois caminhos da área de transferência, ficheiros múltiplos, erros e backup; clipboard real móvel antes do lançamento. |
 
 ## 4. Indicadores e dispensas
 
@@ -159,14 +162,11 @@ RF08/RF18, AC28, AC30–AC32, AC34, AC59–AC61 e AC74 também são P2. Nos cen�
 
 | ID | Prioridade | Dado / Quando | Então — resultado observável | Verificação |
 | --- | --- | --- | --- | --- |
-| AC55 | P2 | Dadas capturas sobrepostas com várias colunas, quando o OCR é executado localmente. | Usa a coluna de contribuição acordada, não confunde cubos/missões com pontos, assinala dúvidas e não soma linhas repetidas. Há revisão antes de validar. | Corpus anotado + inspeção de rede. |
-| AC56 | P2 | Dada uma janela de jogo autorizada num PC compatível, quando o gestor percorre a tabela durante a captura assistida. | Só as linhas realmente vistas são propostas; regista automaticamente os momentos da captura, associados às linhas/recolhas e distintos do processamento/importação. Linhas em falta e valores divergentes exigem revisão. Terminar a captura interrompe o acesso. | Manual por navegador + corpus; relógio controlado para metadados. |
 | AC57 | P2 | Dado um vídeo importado num formato suportado. | São extraídas linhas para revisão sem envio do vídeo à nuvem; formato não suportado ou falta de memória resulta numa alternativa por capturas, sem perda de dados guardados. | Manual em dispositivos reais. |
 | AC77 | P2 | Dada a futura ligação WebRTC entre dois dispositivos autorizados ativos numa rede compatível, quando se transferem alterações. | Após negociação, os dados passam pelo canal direto, sem pedido à nossa API por alteração. Preserva IDs/conflitos e limita pedidos de sinalização. Uma rede que exija relay pago não causa contratação automática; oferece ficheiro. | Apenas se FUT01 for implementado; duas redes/dispositivos reais. |
 | AC78 | P2 | Dado o futuro transporte com armazenamento escolhido pelo utilizador, quando este autoriza e depois revoga acesso. | Usa o espaço privado autorizado, sem duplicação obrigatória das tabelas em D1. Explica conta, quotas e eventuais custos do fornecedor; revogação ou quota não bloqueia o modo local/ficheiros. | Apenas se FUT02 for implementado; conta de teste e rede observada. |
 | AC79 | P2 | Dado um futuro canal de eventos ativo, quando há alterações remotas, períodos sem mudanças e uma reconexão. | O aviso permite obter diferenças sem manter verificações periódicas em paralelo; a reconexão recupera o que faltou. Mede conexões, mensagens e serviços auxiliares sem afirmar que o transporte elimina quotas. | Apenas se FUT03 for implementado. |
 | AC88 | P2 | Dado que a sincronização automática implica custos de chamadas/serviço, quando alguém tenta ativar, ler, enviar, associar ou recuperar dados remotos sem um direito de acesso Ko-fi válido. | O servidor recusa o acesso; abrir o link de apoio ou alterar o armazenamento do navegador não desbloqueia a função. Pagamento válido, repetição do webhook e fim do período são tratados sem duplicar acesso. Expiração/revogação não apaga dados locais nem bloqueia transferência manual gratuita. | Integração de pagamentos de teste e API; apenas na entrega P2. |
-
 | AC89 | P2 | Quando o utilizador alterna entre modo claro e escuro nas Settings e reabre a aplicação. | A preferência é conservada no dispositivo sem alterar os dados da aliança. Tabelas, formulários, diálogos, foco e estados são legíveis e têm contraste adequado nos dois modos. | Automático + visual; apenas quando RF22 for implementado. |
 
 ## 10. Correspondência com o plano
@@ -182,7 +182,8 @@ RF08/RF18, AC28, AC30–AC32, AC34, AC59–AC61 e AC74 também são P2. Nos cen�
 | RF16/RF17, lembretes e calendário | AC39–AC51, AC65, AC76 |
 | RF09/RF10, apoio e distribuição | AC52–AC54 |
 | RF12, ESC01–ESC06 — preparação no MVP | AC69–AC76, especialmente AC73–AC76 |
-| OCR/captura/vídeo futuros | AC55–AC57 |
+| RF04/RF23, imagens/OCR e captura assistida no MVP | AC07–AC11, AC55–AC56, AC90 |
+| Importação de vídeo P2 | AC57 |
 | FUT01–FUT03 | AC77–AC79 |
 | RF19, pesquisa/ordenação | AC80 |
 | RF22, modo claro P2 | AC89 |
@@ -201,4 +202,4 @@ Cada execução regista versão da aplicação, sistema/navegador/cliente de cal
 
 Todos os cenários P0 e P1 aplicáveis têm de passar. A sincronização automática passou para P2 e não bloqueia a aprovação do MVP. Nos cenários mistos, é obrigatório o caminho local/ficheiro; a parte remota só se aplica à entrega P2. O MVP não anuncia sincronização automática nem faz chamadas aos seus endpoints.
 
-AC29 está retirado. AC28, AC30–AC32, AC34, AC55–AC57, AC59–AC61, AC74, AC77–AC79, AC88 e AC89 são P2. AC58 permanece P0: uso local sem conta nem envio de tabelas. Preparar a arquitetura e testar AC73, AC75 e AC76 no MVP não obriga a implementar os transportes futuros. Limitações ou hardware indisponível ficam como pendentes; não marcar como aprovado o que não foi demonstrado.
+AC29 está retirado. AC28, AC30–AC32, AC34, AC57, AC59–AC61, AC74, AC77–AC79, AC88 e AC89 são P2. AC55/AC90 são P0 e AC56 é P1: recolha por imagens e captura assistida compatível pertencem ao MVP. AC58 permanece P0: uso local sem conta nem envio de tabelas. Preparar a arquitetura e testar AC73, AC75 e AC76 no MVP não obriga a implementar os transportes futuros. Limitações ou hardware indisponível ficam como pendentes; não marcar como aprovado o que não foi demonstrado.
