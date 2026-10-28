@@ -224,7 +224,7 @@ O MVP não integra pagamentos nem exige uma conta Ko-fi. O botão de apoio mant�
 - Pedir autorização mediante ação do utilizador. Guardar remotamente só subscrição, identidade técnica, preferências e estado dos envios; não tabelas de pontos.
 - Usar um agendador comum, seleção de envios devidos, lotes limitados e deduplicação por instalação/espaço/aliança/semana/dispositivo.
 - Não suprimir por existir rascunho manual. Uma futura recolha automática só suprime se tiver sucesso completo na janela acordada.
-- Alterar antecedência/ativação atualiza o agendamento após confirmação remota. Uma mudança de fuso só altera a apresentação do mesmo instante UTC.
+- Alterar antecedência/ativação atualiza o agendamento após confirmação remota. Alterações e desativações de um lembrete já registado ficam guardadas como pendentes no dispositivo se o serviço falhar, sobrevivem à reabertura e usam tentativas limitadas com retoma quando a app volta a estar ativa. Atualizar o estado de permissão/subscrição ao regressar à app; não indicar receção ativa com permissão revogada. Uma mudança de fuso só altera a apresentação do mesmo instante UTC.
 - Ativar depois da hora prevista e antes do reset oferece «Lembrar agora» e mostra a próxima recorrência.
 - Mensagem sem nomes/pontos no ecrã bloqueado; tocar abre o registo da semana relevante sem iniciar captura.
 - Repetições não devem criar duplicações visíveis; mensagens antigas expiram até ao reset. Invalidar subscrições revogadas sem afetar as restantes.

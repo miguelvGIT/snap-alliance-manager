@@ -8,8 +8,8 @@
 | --- | --- |
 | TypeScript build check | Passed |
 | Production frontend/PWA build | Passed |
-| Vitest | 53 tests passed: 34 domain, 6 storage, 4 retained P2 sync-engine, 9 API |
-| Playwright | 21 browser checks passed across 1440×900, 768×1024 and 390×844 (18 existing checks plus three scope checks after correcting a test locator) |
+| Vitest | 67 tests passed: 34 domain, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API |
+| Playwright | 27 browser tests passed across 1440×900, 768×1024 and 390×844; notification permission/subscription state is simulated |
 | Deferred P2 browser tests | Three sync-test skips; automatic sync is disabled in the shipped MVP |
 | Cloudflare package | Dry run passed; no upload/deployment |
 | Visual inspection | 0 failures; one small-text warning for secondary copy and metadata |
@@ -27,24 +27,24 @@ Earlier prototype evidence: the two-context test used approved invitations and i
 
 The specification has 49 P0 scenarios and 22 P1 scenarios: 71 mandatory acceptance scenarios. The automated test totals above are the last recorded executions, not 71 acceptance approvals. Automatic sync and remote conflicts are P2. The shipped MVP hides the prototype UI, starts no sync engine, and rejects direct sync API calls. A stored credential from the prototype does not trigger requests. Free file transfer stays available. Conditional paid Ko-fi access is planned for a future sync release; no payments are enabled.
 
-### Implementation corrections still needed
+### Correction status
 
 | Priority and criterion | Current behavior | Work remaining |
 | --- | --- | --- |
 | P2, AC30; deferred prototype | After three failed exchanges, `SyncEngine.run()` rejects further automatic runs. A focus/visibility event calls the same guarded path, so returning to the app does not resume the cycle. Manual retry or recreating the engine can resume it. | Restart a bounded retry cycle when the app becomes active again, with backoff and focus coalescing preserved. Test service recovery and return-to-app recovery without an infinite retry loop. |
-| P1, AC43 | A lead-time change is sent to the API before preferences are saved. If that request fails, the changed value exists only in component state and is lost when Settings is reopened. Failed disable requests also have no durable pending command. | Persist pending reminder changes, distinguish pending from remotely confirmed state, and retry safely when the active app can reach the service. Test a failed change, reopening, recovery and cancellation. This does not require offline startup. |
-| P1, AC46 | Notification permission is read when Settings mounts and after a permission request. It is not refreshed on focus/visibility changes. A revocation outside the app can therefore leave the displayed permission stale. | Refresh the actual permission/subscription state when returning, show the correct state and keep the calendar alternative available. Test revocation while Settings is open. |
+| P1, AC43 | Fixed locally: updates to an existing schedule and removals are persisted in a device-only queue before sending. Failed requests retain the intended change across reopening; confirmation updates preferences. Bounded retries resume on return/online or explicit retry. Newer commands survive older responses. | Native-device and deployed-service checks remain open. First-time registration still needs a successful service connection. |
+| P1, AC46 | Fixed locally: permission/subscription state is read again on focus/visibility changes. Revocation removes the confirmed-schedule display and disables test sends. Calendar export stays available. | Browser checks use simulated permission state; actual OS/browser revocation must still be verified. |
 
-These findings come from code inspection. They are open defects, not completed fixes or successful acceptance tests.
+The AC43/AC46 corrections passed local regression checks, including reload, service failure/recovery and simulated revocation. These do not prove native notification delivery. AC30 remains an open P2 prototype issue.
 
 ### Acceptance coverage still needed
 
-58 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
+60 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
 
-The following 13 mandatory scenarios have no explicit automated-test reference:
+The following 11 mandatory scenarios have no explicit automated-test reference:
 
 - P0: AC10 (late entry of an earlier collection), AC11 (reference-image use and network privacy), AC13 (twenty historical weeks with eight visible), AC19 (historical corrections), AC54 (published PWA installation), AC82 (explicit creation of a new identity during review).
-- P1: AC24 (repeat-miss distinction), AC42 (drafts do not suppress reminders), AC45 (stale notification expiry), AC46 (permission states), AC47 (real iPhone receipt), AC48 (device-specific subscriptions), AC49 (notification-click destination and lock-screen content).
+- P1: AC24 (repeat-miss distinction), AC42 (drafts do not suppress reminders), AC45 (stale notification expiry), AC47 (real iPhone receipt), AC49 (notification-click destination and lock-screen content).
 
 AC54 and AC47 require real devices. The absence of an automated reference does not by itself prove that a feature is missing, and automation alone will not approve those cases.
 
@@ -52,7 +52,7 @@ Examples of partial coverage that need stronger checks:
 
 - AC38 currently checks preservation of an incompatible stored format, not a running-app update with retained data and pending operations.
 - AC31 is now P2: the retained prototype checks server-side conflict retention, not the complete two-session resolution flow.
-- AC40 checks invalid calendar lead times, not the complete valid/invalid reminder-settings flow.
+- AC40 checks invalid calendar/queue lead times and a browser change to 60 minutes. The complete preset/invalid-field reminder-settings flow still needs explicit coverage.
 - AC67/AC68 include a null collection-time assertion, not the full correction and multiple-collection-time transfer scenario.
 - AC74 is now P2: the retained prototype triggers thirty edit events around one pending operation, not thirty real result edits and multiple tabs.
 - AC80 checks contact search, not all search keys and ordering invariants.
@@ -71,7 +71,7 @@ Examples of partial coverage that need stronger checks:
 | P1, RF17 / AC76 | Import the generated file into target calendar clients and verify the actual recurrence/alarm, including changes and duplicate-event handling. |
 | PLANO stage 6 | Run a real collection/reset pilot, verify the contribution column, consult history afterward, restore a backup and check the optional sync/reminders. |
 
-The next MVP implementation work is the reminder corrections and their regression tests, followed by the missing/partial acceptance checks. The sync retry correction is deferred to P2. Deployment and physical-device checks come after those local corrections. Automatic sync/remote conflicts, conditional Ko-fi paid access, OCR/video, FUT01–FUT03, other-game support and localization remain future scope; AC29 remains retired.
+The next MVP work is the remaining local acceptance checks, followed by release/device evidence. The reminder corrections now have regression tests. The sync retry correction is deferred to P2. Deployment and physical-device checks come after those local corrections. Automatic sync/remote conflicts, conditional Ko-fi paid access, OCR/video, FUT01–FUT03, other-game support and localization remain future scope; AC29 remains retired.
 
 ## Implemented local paths
 
@@ -84,7 +84,7 @@ The next MVP implementation work is the reminder corrections and their regressio
 - Complete versioned backup/restore, preview and atomic replacement.
 - Retained P2 sync prototype with invitations, recovery and conflicts. It is disabled in the MVP UI/API and creates no automatic sync traffic.
 - A replaceable sync transport, ordered outbox, delta transfer and bounded retries.
-- Calendar file generation, optional push registration, weekly scheduling and expiring notifications.
+- Calendar file generation, optional push registration, weekly scheduling and expiring notifications. Existing schedule changes/removals use a durable device-only queue; permission state refreshes on return.
 - PWA manifest/icons, same-origin headers, lazy-loaded screens and the confirmed Ko-fi URL.
 
 The planning and acceptance files remain the behavior specification. The number of automated tests is not the number of fully approved acceptance criteria.
@@ -93,7 +93,7 @@ The planning and acceptance files remain the behavior specification. The number 
 
 Local use and file transfer made zero point/reminder API calls in the browser test. Static asset requests are separate.
 
-A controlled debounce test generated thirty edit events and one exchange after the five-second pause. Hidden sessions made no polling calls. Three failed attempts preserved the outbox and stopped repeated retries.
+An earlier retained P2 prototype debounce test generated thirty edit events and one exchange after the five-second pause. Hidden sessions made no polling calls. Three failed attempts preserved the outbox and stopped repeated retries.
 
 Empty sync checks no longer fetch every entity head; changed keys and indexed deltas restrict reads. Initial records use bulk SQL, and expired rate-limit/invitation records are cleaned through indexed queries. Large catch-ups are read through all delta pages before cross-entity validation.
 
@@ -125,8 +125,14 @@ The contribution table answers the main question; the overview's side panel iden
 
 The mobile layout folds navigation and confines horizontal scrolling to the table. Form inputs and primary data use 14 px text; 11–12 px copy is reserved for secondary information. This is the reason for retaining the inspector's small-text warning. The wider accessibility checks above remain open.
 
-The direction is true-black-flat, seed 1430960693, with self-hosted Inter. No visual redraw was needed. The user-requested English copy and app-focused onboarding were reviewed in new screenshots.
+The direction is true-black-flat, seed 1430960693, with self-hosted Inter. No visual redraw was needed. The user-requested English copy and app-focused onboarding were reviewed in new screenshots. Pending-reminder and permission-denied screens were also reviewed at all three widths. Static lint has no failures; its hexadecimal zero-padding warning concerns token hashing, not UI numbering.
 
 ## Future scope
 
 AC29 (full offline startup/use) is retired. OCR/video and transports FUT01–FUT03 remain future work. Localization into other languages is deferred. No integration with an official Marvel Snap alliance API is claimed.
+
+## Reminder increment checks
+
+Thirteen queue tests cover durable edits, reopening, bounded retries/return, replacement of a pending edit by removal, stale responses, invalid values, hidden/disconnected behavior, quota failure, permission reads and exclusion from backups. The API tests also verify device isolation, subscription-endpoint validation and repeatable removal.
+
+Two browser scenarios run at each width: failed schedule change/reload/recovery with simulated revocation, and failed removal/reload/recovery. Requests contain reminder settings and device credentials, never player tables. No real notification was sent and no payment or production service was activated.

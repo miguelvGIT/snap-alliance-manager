@@ -45,6 +45,8 @@ Local use creates no account and uploads no tables. Complete file transfer is fr
 
 ## Reminders
 
+Changes to an existing reminder and removal requests are saved on this device before sending. If the service fails, Settings shows them as pending across reopening. Retries are bounded while the app is active; return to the app or use **Retry pending change** after they pause. Permission and subscription state refresh on return. These device credentials/commands are excluded from transferable backups. First-time activation still needs a successful service connection.
+
 The calendar export works without a server. Import the file into a compatible calendar and confirm its alarm. Remove/replace the previous event after changing the lead time.
 
 Web Push needs VAPID keys. For local development, `node scripts/local-keys.mjs` creates ignored `.dev.vars` without printing its private key. Restart the API after configuration. Notification permission is requested through the enable action.

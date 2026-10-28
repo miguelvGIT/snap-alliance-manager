@@ -246,4 +246,56 @@ describe('API local com D1 real', () => {
     delete env.VAPID_PRIVATE_KEY;
     delete env.VAPID_PUBLIC_KEY;
   });
+  it('AC33 AC43 AC48: reminder updates stay private and deletion can be safely repeated', async () => {
+    const keys = webpush.generateVAPIDKeys();
+    env.VAPID_PUBLIC_KEY = keys.publicKey;
+    env.VAPID_PRIVATE_KEY = keys.privateKey;
+    try {
+      const create = async (suffix: string) =>
+        (await (
+          await request('/api/reminders', {
+            subscription: {
+              endpoint: 'https://fcm.googleapis.com/fcm/send/' + suffix,
+              keys: { p256dh: 'test', auth: 'test' },
+            },
+            leadMinutes: 30,
+          })
+        ).json()) as { id: string; token: string };
+      const a = await create('private-a'),
+        b = await create('private-b');
+      expect(
+        (await request('/api/reminders', { id: a.id, leadMinutes: 60 }, b.token, 'PUT')).status,
+      ).toBe(200);
+      expect(
+        (
+          await env.DB.prepare('SELECT lead_minutes FROM reminders WHERE id=?')
+            .bind(a.id)
+            .first<{ lead_minutes: number }>()
+        )?.lead_minutes,
+      ).toBe(30);
+      expect(
+        (
+          await request(
+            '/api/reminders',
+            {
+              leadMinutes: 15,
+              subscription: {
+                endpoint: 'http://127.0.0.1/private',
+                keys: { p256dh: 'test', auth: 'test' },
+              },
+            },
+            a.token,
+            'PUT',
+          )
+        ).status,
+      ).toBe(400);
+      expect((await request('/api/reminders', undefined, a.token, 'DELETE')).status).toBe(200);
+      expect((await request('/api/reminders', undefined, a.token, 'DELETE')).status).toBe(200);
+      expect((await request('/api/reminders', undefined, b.token)).status).toBe(200);
+      expect((await request('/api/reminders', undefined, undefined, 'DELETE')).status).toBe(401);
+    } finally {
+      delete env.VAPID_PRIVATE_KEY;
+      delete env.VAPID_PUBLIC_KEY;
+    }
+  });
 });

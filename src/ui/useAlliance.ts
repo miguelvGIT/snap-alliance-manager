@@ -3,6 +3,7 @@ import { type Dataset } from '../domain/model';
 import { db, readDataset, saveDataset } from '../data/store';
 import { SyncEngine } from '../sync/client';
 import { SYNC_PREVIEW } from '../features';
+import { reminderQueue } from '../reminders/client';
 export function useAlliance() {
   const [data, setData] = useState<Dataset | null>(null),
     [loading, setLoading] = useState(true),
@@ -41,6 +42,11 @@ export function useAlliance() {
     sync?.start();
     const broadcast = new BroadcastChannel('alliance-data');
     channel.current = broadcast;
+    reminderQueue.start((next) => {
+      if (!mounted) return;
+      if (!unsaved.current) update(next);
+      broadcast.postMessage('changed');
+    });
     broadcast.onmessage = () => {
       if (!unsaved.current)
         readDataset()
@@ -57,6 +63,7 @@ export function useAlliance() {
     return () => {
       mounted = false;
       sync?.stop();
+      reminderQueue.stop();
       broadcast.close();
       window.removeEventListener('beforeunload', protect);
     };

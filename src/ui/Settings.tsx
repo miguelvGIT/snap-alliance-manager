@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, Upload, Link2, Unlink, Bell, CalendarDays, RefreshCw } from 'lucide-react';
 import QRCode from 'qrcode';
 import {
@@ -25,8 +25,15 @@ import type { Commit } from './useAlliance';
 import { Modal, Field, Notice, number } from './Modal';
 import s from './ui.module.css';
 import { SYNC_PREVIEW } from '../features';
+import {
+  reminderQueue,
+  readReminderCommand,
+  notificationState,
+  REMINDER_CHANGED,
+  type Reminder,
+  type ReminderCommand,
+} from '../reminders/client';
 type JoinRequest = { id: string; label: string; verification: string };
-type Reminder = { id: string; token: string; nextDue: number; resetAt: string };
 const deviceSecret = () => {
   const b = crypto.getRandomValues(new Uint8Array(32));
   return btoa(String.fromCharCode(...b))
@@ -66,6 +73,8 @@ export default function Settings({
     } | null>(null),
     [joined, setJoined] = useState<SyncCredentials | null>(null),
     [reminder, setReminder] = useState<Reminder | null>(null),
+    [pendingReminder, setPendingReminder] = useState<ReminderCommand | null>(null),
+    [subscribed, setSubscribed] = useState(false),
     [conflicts, setConflicts] = useState<Conflict[]>([]),
     [devices, setDevices] = useState<{ id: string; label: string; revoked: number }[]>([]),
     [permission, setPermission] = useState(
@@ -73,13 +82,34 @@ export default function Settings({
     ),
     [busy, setBusy] = useState(false),
     [recovery, setRecovery] = useState('');
+  const leadDirty = useRef(false);
   const refresh = async () => {
     setCredentials((await readLocal<SyncCredentials>('sync')) ?? null);
-    setReminder((await readLocal<Reminder>('reminder')) ?? null);
+    const saved = (await readLocal<Reminder>('reminder')) ?? null;
+    const pending = (await readReminderCommand()) ?? null;
+    setReminder(saved);
+    setPendingReminder(pending);
+    if (!leadDirty.current)
+      setLead(pending?.leadMinutes ?? saved?.leadMinutes ?? data.preferences.leadMinutes);
+    const state = await notificationState();
+    setPermission(state.permission);
+    setSubscribed(state.subscribed);
     setConflicts(await db.conflicts.toArray());
   };
   useEffect(() => {
-    void refresh();
+    const onReturn = () => {
+      if (document.visibilityState === 'visible')
+        void refresh().catch((e) => setError((e as Error).message));
+    };
+    onReturn();
+    window.addEventListener('focus', onReturn);
+    window.addEventListener(REMINDER_CHANGED, onReturn);
+    document.addEventListener('visibilitychange', onReturn);
+    return () => {
+      window.removeEventListener('focus', onReturn);
+      window.removeEventListener(REMINDER_CHANGED, onReturn);
+      document.removeEventListener('visibilitychange', onReturn);
+    };
   }, []);
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -561,12 +591,22 @@ export default function Settings({
               max="10079"
               step="1"
               value={lead}
-              onChange={(e) => setLead(Number(e.target.value))}
+              onChange={(e) => {
+                leadDirty.current = true;
+                setLead(Number(e.target.value));
+              }}
             />
           </Field>
           <div className={s.actions}>
             {[5, 15, 30, 60, 120].map((value) => (
-              <button key={value} aria-pressed={lead === value} onClick={() => setLead(value)}>
+              <button
+                key={value}
+                aria-pressed={lead === value}
+                onClick={() => {
+                  leadDirty.current = true;
+                  setLead(value);
+                }}
+              >
                 {value} min
               </button>
             ))}
@@ -583,10 +623,31 @@ export default function Settings({
           )}
           <div className={s.actions}>
             <button
-              disabled={busy || !Number.isInteger(lead) || lead < 1 || lead > 10079}
+              disabled={
+                busy ||
+                pendingReminder?.kind === 'disable' ||
+                !Number.isInteger(lead) ||
+                lead < 1 ||
+                lead > 10079
+              }
               className={s.primary}
               onClick={() =>
                 run(async () => {
+                  if (
+                    reminder &&
+                    subscribed &&
+                    typeof Notification !== 'undefined' &&
+                    Notification.permission === 'granted'
+                  ) {
+                    await reminderQueue.update(lead);
+                    leadDirty.current = false;
+                    setMessage(
+                      (await readReminderCommand())
+                        ? 'Change saved on this device. Confirmation is pending.'
+                        : 'Reminder schedule confirmed.',
+                    );
+                    return;
+                  }
                   if (
                     !('serviceWorker' in navigator) ||
                     !('PushManager' in window) ||
@@ -595,18 +656,21 @@ export default function Settings({
                     throw new Error(
                       'This browser does not support notifications. Use the calendar option. On iPhone, install the app on your Home Screen.',
                     );
+                  const grant =
+                    Notification.permission === 'granted'
+                      ? 'granted'
+                      : await Notification.requestPermission();
+                  setPermission(grant);
+                  if (grant !== 'granted')
+                    throw new Error(
+                      'Permission was not granted. Enable it in browser settings or use your calendar.',
+                    );
                   const cfg = await api<{ pushAvailable: boolean; vapidPublicKey: string | null }>(
                     '/config',
                   );
                   if (!cfg.pushAvailable || !cfg.vapidPublicKey)
                     throw new Error(
                       'Reminders are not available on this server yet. You can already use the calendar option.',
-                    );
-                  const grant = await Notification.requestPermission();
-                  setPermission(grant);
-                  if (grant !== 'granted')
-                    throw new Error(
-                      'Permission was not granted. You can enable it in browser settings or use your calendar.',
                     );
                   const registration = await navigator.serviceWorker.register('/sw.js');
                   await navigator.serviceWorker.ready;
@@ -620,36 +684,37 @@ export default function Settings({
                       userVisibleOnly: true,
                       applicationServerKey: bytes,
                     }));
-                  if (reminder) {
-                    const result = await api<{ nextDue: number; resetAt: string }>(
-                      '/reminders',
-                      { leadMinutes: lead },
-                      reminder.token,
-                      'PUT',
-                    );
-                    await writeLocal('reminder', { ...reminder, ...result });
-                  } else {
+                  if (reminder) await reminderQueue.update(lead, subscription.toJSON());
+                  else {
                     const result = await api<Reminder>('/reminders', {
                       subscription: subscription.toJSON(),
                       leadMinutes: lead,
                     });
-                    await writeLocal('reminder', result);
+                    await writeLocal('reminder', { ...result, leadMinutes: lead });
+                    await commit(
+                      change(data, 'preferences', 'Reminder lead time confirmed', (draft) => {
+                        draft.preferences.leadMinutes = lead;
+                      }),
+                    );
                   }
-                  await commit(
-                    change(data, 'preferences', 'Reminder lead time updated', (draft) => {
-                      draft.preferences.leadMinutes = lead;
-                    }),
+                  leadDirty.current = false;
+                  setMessage(
+                    (await readReminderCommand())
+                      ? 'Change saved on this device. Confirmation is pending.'
+                      : 'Reminder enabled and schedule confirmed.',
                   );
-                  setMessage('Reminder enabled and schedule confirmed.');
                 })
               }
             >
               <Bell size={16} />
-              {reminder ? 'Save lead time' : 'Enable on this device'}
+              {reminder && permission === 'granted' && subscribed
+                ? 'Save lead time'
+                : 'Enable on this device'}
             </button>
-            {reminder && (
+            {reminder && pendingReminder?.kind !== 'disable' && (
               <>
                 <button
+                  disabled={busy || permission !== 'granted' || !subscribed}
                   onClick={() =>
                     run(async () => {
                       await api('/reminders/test', {}, reminder.token);
@@ -662,12 +727,12 @@ export default function Settings({
                 <button
                   onClick={() =>
                     run(async () => {
-                      await api('/reminders', undefined, reminder.token, 'DELETE');
-                      await db.entries.delete('reminder');
-                      const registration = await navigator.serviceWorker.getRegistration();
-                      await (await registration?.pushManager.getSubscription())?.unsubscribe();
-                      setReminder(null);
-                      setMessage('Reminders disabled on this device.');
+                      await reminderQueue.disable();
+                      setMessage(
+                        (await readReminderCommand())
+                          ? 'Removal saved on this device. Confirmation is pending.'
+                          : 'Reminders disabled on this device.',
+                      );
                     })
                   }
                 >
@@ -676,12 +741,51 @@ export default function Settings({
               </>
             )}
           </div>
-          {reminder && (
-            <p>
-              Scheduled for {dateTime(new Date(reminder.nextDue).toISOString())}. Delivery depends
-              on connectivity and the operating system.
-            </p>
+          {pendingReminder && (
+            <Notice tone="warning">
+              <p>
+                {pendingReminder.kind === 'disable'
+                  ? 'Reminder removal is pending. The service has not confirmed it yet.'
+                  : 'Your lead-time change is saved on this device. The service has not confirmed the new schedule yet.'}
+              </p>
+              {pendingReminder.error && (
+                <p>
+                  {pendingReminder.attempts >= 3
+                    ? 'Automatic retries are paused. Retry now or return to the app later.'
+                    : 'A retry is scheduled while the app is active.'}
+                </p>
+              )}
+              <button
+                disabled={busy}
+                onClick={() =>
+                  run(async () => {
+                    await reminderQueue.retry();
+                  })
+                }
+              >
+                Retry pending change
+              </button>
+            </Notice>
           )}
+          {reminder &&
+            pendingReminder?.kind !== 'disable' &&
+            (permission !== 'granted' || !subscribed) && (
+              <Notice tone="warning">
+                {permission === 'denied'
+                  ? 'Notifications are blocked in your browser settings.'
+                  : 'This browser has no active push subscription.'}{' '}
+                Calendar reminders are still available.
+              </Notice>
+            )}
+          {reminder &&
+            permission === 'granted' &&
+            subscribed &&
+            pendingReminder?.kind !== 'disable' && (
+              <p>
+                Last confirmed schedule: {dateTime(new Date(reminder.nextDue).toISOString())}.
+                Delivery depends on connectivity and the operating system.
+              </p>
+            )}
           <h3>Calendar option</h3>
           <p>
             Import the file into your calendar and confirm the alert. Your calendar handles the

@@ -546,22 +546,29 @@ async function reminderRoute(request: Request, env: Env, path: string) {
   }
   const token = request.headers.get('Authorization')?.replace(/^Bearer /, '');
   if (!token) throw new HttpError(401, 'Reminder not authorized.');
+  if (request.method === 'DELETE' && path === '/api/reminders') {
+    await env.DB.prepare('DELETE FROM reminders WHERE token_hash=?')
+      .bind(await hash(token))
+      .run();
+    return json({ ok: true });
+  }
   const reminder = await env.DB.prepare('SELECT * FROM reminders WHERE token_hash=?')
     .bind(await hash(token))
     .first<Record<string, unknown>>();
   if (!reminder) throw new HttpError(403, 'Reminder not authorized.');
-  if (request.method === 'DELETE') {
-    await env.DB.prepare('DELETE FROM reminders WHERE id=?').bind(reminder.id).run();
-    return json({ ok: true });
-  }
   if (request.method === 'POST' && path === '/api/reminders/test') {
     await sendPush(env, { ...reminder, reset_at: weekBounds().end, week_id: weekBounds().id });
     return json({ ok: true });
   }
   if (request.method === 'PUT') {
     const input = z
-      .object({ leadMinutes: z.number().int().min(1).max(10079) })
+      .object({
+        leadMinutes: z.number().int().min(1).max(10079),
+        subscription: subscriptionSchema.optional(),
+      })
       .parse(await body(request));
+    if (input.subscription && !safeEndpoint(input.subscription.endpoint))
+      throw new HttpError(400, 'Push service not supported.');
     let reset = weekBounds().end;
     if (
       reminder.sent_week === weekBounds().id ||
@@ -570,9 +577,16 @@ async function reminderRoute(request: Request, env: Env, path: string) {
       reset = new Date(Date.parse(reset) + 604800000).toISOString();
     const due = Date.parse(reset) - input.leadMinutes * 60000;
     await env.DB.prepare(
-      'UPDATE reminders SET lead_minutes=?,next_due=?,reset_at=?,week_id=?,attempts=0 WHERE id=?',
+      'UPDATE reminders SET lead_minutes=?,next_due=?,reset_at=?,week_id=?,subscription_json=?,attempts=0 WHERE id=?',
     )
-      .bind(input.leadMinutes, due, reset, weekBounds(Date.parse(reset) - 1).id, reminder.id)
+      .bind(
+        input.leadMinutes,
+        due,
+        reset,
+        weekBounds(Date.parse(reset) - 1).id,
+        input.subscription ? JSON.stringify(input.subscription) : reminder.subscription_json,
+        reminder.id,
+      )
       .run();
     return json({ nextDue: due, resetAt: reset });
   }
