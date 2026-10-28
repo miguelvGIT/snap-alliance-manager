@@ -9,7 +9,7 @@
 | TypeScript build check | Passed |
 | Production frontend/PWA build | Passed |
 | Vitest | 67 tests passed: 34 domain, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API |
-| Playwright | 27 browser tests passed across 1440×900, 768×1024 and 390×844; notification permission/subscription state is simulated |
+| Playwright | 30 browser checks passed (27 full-suite checks plus three minimum-setting checks after correcting a test locator) across 1440×900, 768×1024 and 390×844; notification permission/subscription state is simulated |
 | Deferred P2 browser tests | Three sync-test skips; automatic sync is disabled in the shipped MVP |
 | Cloudflare package | Dry run passed; no upload/deployment |
 | Visual inspection | 0 failures; one small-text warning for secondary copy and metadata |
@@ -39,17 +39,18 @@ The AC43/AC46 corrections passed local regression checks, including reload, serv
 
 ### Acceptance coverage still needed
 
-60 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
+61 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
 
-The following 11 mandatory scenarios have no explicit automated-test reference:
+The following 10 mandatory scenarios have no explicit automated-test reference:
 
-- P0: AC10 (late entry of an earlier collection), AC11 (reference-image use and network privacy), AC13 (twenty historical weeks with eight visible), AC19 (historical corrections), AC54 (published PWA installation), AC82 (explicit creation of a new identity during review).
+- P0: AC10 (late entry of an earlier collection), AC11 (reference-image use and network privacy), AC13 (twenty historical weeks with eight visible), AC54 (published PWA installation), AC82 (explicit creation of a new identity during review).
 - P1: AC24 (repeat-miss distinction), AC42 (drafts do not suppress reminders), AC45 (stale notification expiry), AC47 (real iPhone receipt), AC49 (notification-click destination and lock-screen content).
 
 AC54 and AC47 require real devices. The absence of an automated reference does not by itself prove that a feature is missing, and automation alone will not approve those cases.
 
 Examples of partial coverage that need stronger checks:
 
+- AC19 now checks minimum corrections through Settings, required reasons, before/after values in the backup, unchanged defaults/other weeks, recalculated misses and preserved averages. The full points-correction revision flow still needs explicit coverage.
 - AC38 currently checks preservation of an incompatible stored format, not a running-app update with retained data and pending operations.
 - AC31 is now P2: the retained prototype checks server-side conflict retention, not the complete two-session resolution flow.
 - AC40 checks invalid calendar/queue lead times and a browser change to 60 minutes. The complete preset/invalid-field reminder-settings flow still needs explicit coverage.
@@ -69,7 +70,7 @@ Examples of partial coverage that need stronger checks:
 | P0, AC53 | Finish 360 px, keyboard/touch and 200% zoom checks; review secondary text legibility and accessibility. Existing viewport checks are 390/768/1440 px. |
 | P1, RF16 / AC41–AC50, AC65 | Configure production Web Push and verify real receipt with the app closed, revocation, device selection, duplicate suppression, expiry and the click destination. |
 | P1, RF17 / AC76 | Import the generated file into target calendar clients and verify the actual recurrence/alarm, including changes and duplicate-event handling. |
-| PLANO stage 6 | Run a real collection/reset pilot, verify the contribution column, consult history afterward, restore a backup and check the optional sync/reminders. |
+| PLANO stage 6 | Run a real collection/reset pilot, verify the contribution column, consult history afterward, restore a backup and check reminders. Automatic sync belongs to P2. |
 
 The next MVP work is the remaining local acceptance checks, followed by release/device evidence. The reminder corrections now have regression tests. The sync retry correction is deferred to P2. Deployment and physical-device checks come after those local corrections. Automatic sync/remote conflicts, conditional Ko-fi paid access, OCR/video, FUT01–FUT03, other-game support and localization remain future scope; AC29 remains retired.
 
@@ -129,10 +130,14 @@ The direction is true-black-flat, seed 1430960693, with self-hosted Inter. No vi
 
 ## Future scope
 
-AC29 (full offline startup/use) is retired. OCR/video and transports FUT01–FUT03 remain future work. Localization into other languages is deferred. No integration with an official Marvel Snap alliance API is claimed.
+AC29 (full offline startup/use) is retired. OCR/video and transports FUT01–FUT03 remain future work. Light mode (RF22/AC89) and localization into other languages are deferred to P2. No integration with an official Marvel Snap alliance API is claimed.
 
 ## Reminder increment checks
 
 Thirteen queue tests cover durable edits, reopening, bounded retries/return, replacement of a pending edit by removal, stale responses, invalid values, hidden/disconnected behavior, quota failure, permission reads and exclusion from backups. The API tests also verify device isolation, subscription-endpoint validation and repeatable removal.
 
 Two browser scenarios run at each width: failed schedule change/reload/recovery with simulated revocation, and failed removal/reload/recovery. Requests contain reminder settings and device credentials, never player tables. No real notification was sent and no payment or production service was activated.
+
+## Minimum settings increment checks
+
+The weekly editor displays the applicable minimum without an edit action. All minimum changes are in Settings: the default for new weeks and a separate, collapsed saved-week correction with a mandatory reason. Tests at 1440/768/390 px verify historical isolation, old/new values in the exported revision, indicator recalculation and the absence of the old action. Light mode is planned as P2 only.

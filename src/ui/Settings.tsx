@@ -83,6 +83,15 @@ export default function Settings({
     [busy, setBusy] = useState(false),
     [recovery, setRecovery] = useState('');
   const leadDirty = useRef(false);
+  const [savedMinimum, setSavedMinimum] = useState(() => {
+    const week = data.weeks.slice().sort((a, b) => b.start.localeCompare(a.start))[0];
+    return {
+      weekId: week?.id ?? '',
+      value: String(week?.minimum ?? data.alliance.minimum),
+      reason: '',
+    };
+  });
+  const savedWeeks = data.weeks.slice().sort((a, b) => b.start.localeCompare(a.start));
   const refresh = async () => {
     setCredentials((await readLocal<SyncCredentials>('sync')) ?? null);
     const saved = (await readLocal<Reminder>('reminder')) ?? null;
@@ -166,54 +175,138 @@ export default function Settings({
           <h2>Alliance and minimums</h2>
           <p>New values apply to future weeks. History keeps its original minimums.</p>
         </div>
-        <form
-          className={s.panel}
-          onSubmit={(e) => {
-            e.preventDefault();
-            void run(async () => {
-              await commit(
-                change(data, 'alliance', 'Alliance settings updated', (draft) => {
-                  draft.alliance = {
-                    ...draft.alliance,
-                    name,
-                    minimum: Number(minimum),
-                    goal: Number(goal),
-                  };
-                }),
-              );
-              setMessage('Settings saved.');
-            });
-          }}
-        >
-          <Field label="Alliance name">
-            <input required value={name} onChange={(e) => setName(e.target.value)} />
-          </Field>
-          <div className={s.formGrid}>
-            <Field label="Minimum per player">
-              <input
-                type="number"
-                required
-                min="0"
-                step="1"
-                value={minimum}
-                onChange={(e) => setMinimum(e.target.value)}
-              />
+        <div className={s.panel}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              void run(async () => {
+                await commit(
+                  change(data, 'alliance', 'Alliance settings updated', (draft) => {
+                    draft.alliance = {
+                      ...draft.alliance,
+                      name,
+                      minimum: Number(minimum),
+                      goal: Number(goal),
+                    };
+                  }),
+                );
+                setMessage('Settings saved.');
+              });
+            }}
+          >
+            <Field label="Alliance name">
+              <input required value={name} onChange={(e) => setName(e.target.value)} />
             </Field>
-            <Field label="Alliance target">
-              <input
-                type="number"
-                required
-                min="0"
-                step="1"
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-              />
-            </Field>
-          </div>
-          <button disabled={busy} className={s.primary}>
-            Save settings
-          </button>
-        </form>
+            <div className={s.formGrid}>
+              <Field label="Minimum per player">
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  step="1"
+                  value={minimum}
+                  onChange={(e) => setMinimum(e.target.value)}
+                />
+              </Field>
+              <Field label="Alliance target">
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  step="1"
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                />
+              </Field>
+            </div>
+            <button disabled={busy} className={s.primary}>
+              Save settings
+            </button>
+          </form>
+          {savedWeeks.length > 0 && (
+            <details>
+              <summary>Saved weekly minimums</summary>
+              <p>
+                Correct a saved week's minimum here. Your default stays unchanged, and the previous
+                value remains in the history.
+              </p>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void run(async () => {
+                    if (!data.weeks.some((week) => week.id === savedMinimum.weekId))
+                      throw new Error('Choose a saved week.');
+                    await commit(
+                      change(data, 'week/' + savedMinimum.weekId, savedMinimum.reason, (draft) => {
+                        draft.weeks.find((week) => week.id === savedMinimum.weekId)!.minimum =
+                          Number(savedMinimum.value);
+                      }),
+                    );
+                    setSavedMinimum((current) => ({ ...current, reason: '' }));
+                    setMessage(
+                      'The saved minimum was updated. The previous value and reason are kept in the history.',
+                    );
+                  });
+                }}
+              >
+                <Field label="Saved week">
+                  <select
+                    value={savedMinimum.weekId}
+                    onChange={(e) => {
+                      const week = data.weeks.find((week) => week.id === e.target.value);
+                      setSavedMinimum({
+                        weekId: e.target.value,
+                        value: String(week?.minimum ?? ''),
+                        reason: '',
+                      });
+                    }}
+                  >
+                    <option value="" disabled>
+                      Choose a saved week
+                    </option>
+                    {savedWeeks.map((week) => (
+                      <option key={week.id} value={week.id}>
+                        {weekLabel(week)}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Minimum for this week">
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                    value={savedMinimum.value}
+                    onChange={(e) =>
+                      setSavedMinimum((current) => ({ ...current, value: e.target.value }))
+                    }
+                  />
+                </Field>
+                <Field label="Reason for changing the minimum">
+                  <textarea
+                    required
+                    value={savedMinimum.reason}
+                    onChange={(e) =>
+                      setSavedMinimum((current) => ({ ...current, reason: e.target.value }))
+                    }
+                  />
+                </Field>
+                <button
+                  className={s.primary}
+                  disabled={
+                    busy ||
+                    !savedMinimum.reason.trim() ||
+                    savedMinimum.value === '' ||
+                    !data.weeks.some((week) => week.id === savedMinimum.weekId)
+                  }
+                >
+                  Save weekly minimum
+                </button>
+              </form>
+            </details>
+          )}
+        </div>
       </section>
       <section className={s.settingsSection}>
         <div>

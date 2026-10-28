@@ -58,8 +58,7 @@ export default function WeekEditor({
     [validate, setValidate] = useState(false),
     [images, setImages] = useState<{ name: string; url: string }[]>([]),
     [correct, setCorrect] = useState<{ player: Player; value: string } | null>(null);
-  const [minimumCorrection, setMinimumCorrection] = useState<string | null>(null),
-    [collectionReason, setCollectionReason] = useState(''),
+  const [collectionReason, setCollectionReason] = useState(''),
     [replacePoints, setReplacePoints] = useState(false);
   useEffect(() => () => images.forEach((image) => URL.revokeObjectURL(image.url)), [images]);
   const locale = navigator.language,
@@ -134,16 +133,6 @@ export default function WeekEditor({
           Minimum: <strong>{number(week.minimum)}</strong> points
           <br />
           Target: {number(week.goal)}
-          <br />
-          <button
-            className={s.textButton}
-            onClick={() => {
-              setMinimumCorrection(String(week.minimum));
-              setReason('');
-            }}
-          >
-            Correct this week's minimum
-          </button>
         </p>
       </div>
       {error && (
@@ -760,47 +749,6 @@ export default function WeekEditor({
               </button>
               <button className={s.primary} disabled={!reason.trim()}>
                 Confirm correction
-              </button>
-            </footer>
-          </form>
-        </Modal>
-      )}
-      {minimumCorrection !== null && (
-        <Modal title="Correct this week's minimum" onClose={() => setMinimumCorrection(null)}>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              void run(async () => {
-                await commit(
-                  change(base, 'week/' + selected, reason, (draft) => {
-                    draft.weeks.find((w) => w.id === selected)!.minimum = Number(minimumCorrection);
-                  }),
-                );
-                setMinimumCorrection(null);
-              });
-            }}
-          >
-            <p>{weekLabel(week, locale, zone)}</p>
-            <Field label="This week's minimum">
-              <input
-                type="number"
-                min="0"
-                step="1"
-                required
-                value={minimumCorrection}
-                onChange={(e) => setMinimumCorrection(e.target.value)}
-              />
-            </Field>
-            <Field label="Reason for the correction">
-              <textarea value={reason} onChange={(e) => setReason(e.target.value)} />
-            </Field>
-            {error && <Notice tone="error">{error}</Notice>}
-            <footer>
-              <button type="button" onClick={() => setMinimumCorrection(null)}>
-                Cancel
-              </button>
-              <button className={s.primary} disabled={!reason.trim() || minimumCorrection === ''}>
-                Confirm historical minimum
               </button>
             </footer>
           </form>

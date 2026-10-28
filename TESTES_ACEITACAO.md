@@ -79,7 +79,7 @@ Arredondar apenas a apresentação da média a duas casas; usar o valor original
 | AC17 | P0 | Dado reset fixo 19:00 UTC e zona Europe/Lisbon, quando se consulta 07/07/2026 e 27/10/2026. | A hora local é respetivamente 20:00 e 19:00; os limites UTC não mudam por causa do horário de verão. | Automático. |
 | AC63 | P0 | Dado reset terça 19:00 UTC, quando o fuso apresentado é UTC+2, UTC+5:30 ou Europe/Lisbon em datas de verão/inverno, e se altera a configuração regional. | Mostra respetivamente terça 21:00, quarta 00:30 e a hora sazonal correta em Lisboa. A semana de 20/10/2026 19:00 UTC a 27/10/2026 19:00 UTC tem rótulo «20/10/26 - 27/10/26» em pt-PT/Lisboa e «21/10/26 - 28/10/26» em pt-PT/UTC+5:30. Outra configuração regional usa a sua ordem/separadores de data, mantendo dois algarismos no dia, mês e ano. Não existe controlo para mudar o reset; o ID e os limites UTC não mudam. | Automático com fusos e datas parametrizados. |
 | AC18 | P0 | Dada a semana «20/10/26 - 27/10/26» com mínimo 2 700, quando o mínimo por defeito muda para 3 000. | Essa semana e os seus indicadores mantêm o mínimo original; novas semanas recebem o novo mínimo. | Automático. |
-| AC19 | P0 | Dada uma semana validada, quando o gestor corrige pontos ou o mínimo histórico com motivo. | A revisão anterior permanece consultável; média e contagem são recalculadas uma vez, sem duplicação. | Automático. |
+| AC19 | P0 | Dada uma semana validada, quando o gestor corrige pontos com motivo, ou seleciona essa semana nas Settings e corrige o mínimo com motivo. | A revisão anterior permanece consultável; média e contagem são recalculadas uma vez, sem duplicação. O mínimo por defeito e as outras semanas não mudam por uma correção histórica. O registo semanal não tem ação para editar mínimos. | Automático. |
 | AC15 | P0 | Dada uma semana corrente ou em rascunho, quando existem pontos abaixo do mínimo. | Não aumentam ainda os incumprimentos históricos. Uma semana validada só entra quando o respetivo fim passar. | Automático com relógio controlado. |
 | AC27 | P0 | Dada uma semana com alguns resultados desconhecidos, quando o gestor confirma a validação incompleta. | Os resultados conhecidos podem ser avaliados, mas os restantes mantêm «sem registo» e a semana conserva o aviso de incompletude. | Automático. |
 | AC02 | P0 | Dado um mínimo de 2 700, quando se registam 2 699, 2 700 e 2 701 numa semana elegível. | Apenas o primeiro resultado é incumprimento. | Automático, regra e interface. |
@@ -167,6 +167,8 @@ RF08/RF18, AC28, AC30–AC32, AC34, AC59–AC61 e AC74 também são P2. Nos cen�
 | AC79 | P2 | Dado um futuro canal de eventos ativo, quando há alterações remotas, períodos sem mudanças e uma reconexão. | O aviso permite obter diferenças sem manter verificações periódicas em paralelo; a reconexão recupera o que faltou. Mede conexões, mensagens e serviços auxiliares sem afirmar que o transporte elimina quotas. | Apenas se FUT03 for implementado. |
 | AC88 | P2 | Dado que a sincronização automática implica custos de chamadas/serviço, quando alguém tenta ativar, ler, enviar, associar ou recuperar dados remotos sem um direito de acesso Ko-fi válido. | O servidor recusa o acesso; abrir o link de apoio ou alterar o armazenamento do navegador não desbloqueia a função. Pagamento válido, repetição do webhook e fim do período são tratados sem duplicar acesso. Expiração/revogação não apaga dados locais nem bloqueia transferência manual gratuita. | Integração de pagamentos de teste e API; apenas na entrega P2. |
 
+| AC89 | P2 | Quando o utilizador alterna entre modo claro e escuro nas Settings e reabre a aplicação. | A preferência é conservada no dispositivo sem alterar os dados da aliança. Tabelas, formulários, diálogos, foco e estados são legíveis e têm contraste adequado nos dois modos. | Automático + visual; apenas quando RF22 for implementado. |
+
 ## 10. Correspondência com o plano
 
 | Área do plano | Cenários principais |
@@ -183,6 +185,7 @@ RF08/RF18, AC28, AC30–AC32, AC34, AC59–AC61 e AC74 também são P2. Nos cen�
 | OCR/captura/vídeo futuros | AC55–AC57 |
 | FUT01–FUT03 | AC77–AC79 |
 | RF19, pesquisa/ordenação | AC80 |
+| RF22, modo claro P2 | AC89 |
 
 ## 11. Execução e evidência
 
@@ -198,4 +201,4 @@ Cada execução regista versão da aplicação, sistema/navegador/cliente de cal
 
 Todos os cenários P0 e P1 aplicáveis têm de passar. A sincronização automática passou para P2 e não bloqueia a aprovação do MVP. Nos cenários mistos, é obrigatório o caminho local/ficheiro; a parte remota só se aplica à entrega P2. O MVP não anuncia sincronização automática nem faz chamadas aos seus endpoints.
 
-AC29 está retirado. AC28, AC30–AC32, AC34, AC55–AC57, AC59–AC61, AC74 e AC77–AC79 são P2, além de AC88. AC58 permanece P0: uso local sem conta nem envio de tabelas. Preparar a arquitetura e testar AC73, AC75 e AC76 no MVP não obriga a implementar os transportes futuros. Limitações ou hardware indisponível ficam como pendentes; não marcar como aprovado o que não foi demonstrado.
+AC29 está retirado. AC28, AC30–AC32, AC34, AC55–AC57, AC59–AC61, AC74, AC77–AC79, AC88 e AC89 são P2. AC58 permanece P0: uso local sem conta nem envio de tabelas. Preparar a arquitetura e testar AC73, AC75 e AC76 no MVP não obriga a implementar os transportes futuros. Limitações ou hardware indisponível ficam como pendentes; não marcar como aprovado o que não foi demonstrado.

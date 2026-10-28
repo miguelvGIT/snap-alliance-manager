@@ -39,6 +39,7 @@ Enter your existing alliance's name and minimum/target, then select **Start**. Y
 - **Overview:** averages and missed minimums use all eligible history; the table shows eight recent weeks. A missing score stays distinct from zero.
 - **History:** review weeks, collection times and revision reasons.
 - **Settings:** change defaults, export/import and choose reminders.
+- **Minimums:** Settings holds both the default for new weeks and a separate saved-week correction with a required reason. The weekly editor shows the applied minimum.
 - **Support the project:** opens https://ko-fi.com/tequilasunsett without player data.
 
 Local use creates no account and uploads no tables. Complete file transfer is free and available in the MVP. Automatic sync is P2 and disabled in the shipped app and API. Its retained local prototype is not a released feature. Future sync that incurs service/call costs will require server-verified paid access through Ko-fi; payment integration, price and access duration are not implemented. Backups exclude credentials and push subscriptions.

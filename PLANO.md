@@ -66,6 +66,7 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 | RF08 | Sincronização automática opcional. O protótipo existente fica desativado no MVP. |
 | RF18 | Preservar e resolver explicitamente conflitos da sincronização automática. As revisões locais continuam obrigatórias no MVP. |
 | RF21 | Se a sincronização automática implicar custos de chamadas/serviço, restringir o acesso pago via Ko-fi, com direito de acesso validado no servidor. O uso local e a transferência manual permanecem gratuitos. |
+| RF22 | Permitir alternar entre modo escuro e modo claro nas Settings, guardando a preferência localmente. O modo claro é P2; não faz parte da implementação atual. |
 
 - OCR local para preencher capturas, se não passar a integrar a primeira versão após prova de conceito.
 - Captura assistida da janela do jogo no PC e importação de vídeo.
@@ -102,7 +103,7 @@ Estas regras concretizam o comportamento. As escolhas de cálculo e apresentaç�
 | --- | --- |
 | RN05 | Cada semana vai de terça às 19:00 UTC até à terça seguinte às 19:00 UTC, com início incluído e fim excluído. No instante exato do reset começa a semana nova. |
 | RN05a | Converter ambos os limites para o fuso do dispositivo e formatar as datas segundo a configuração regional, com dia/mês/ano a dois algarismos. Usar «data de início - data de fim» em cabeçalhos, histórico, seletores e detalhe. Não subtrair um dia ao fim nem mostrar códigos sequenciais de semana. O ID interno não depende do rótulo. |
-| RN06 | Cada semana guarda mínimo e meta aplicáveis. Alterar o mínimo por defeito só afeta semanas novas. Corrigir uma semana histórica exige ação explícita, motivo e revisão. |
+| RN06 | Cada semana guarda mínimo e meta aplicáveis. Alterações de mínimos ficam concentradas nas Settings; o registo semanal mostra apenas o mínimo aplicável. Alterar o mínimo por defeito só afeta semanas novas. Corrigir o mínimo de uma semana guardada exige seleção explícita dessa semana, motivo e revisão, sem alterar o mínimo por defeito. |
 | RN07 | Estados: rascunho e validada. Só semanas validadas e terminadas entram nos indicadores históricos. Não contar a semana corrente antecipadamente. |
 
 Exemplos: UTC+2 vê o reset à terça às 21:00; UTC+5:30 vê quarta às 00:30. A semana com limites UTC 20/10/2026 19:00 e 27/10/2026 19:00 é apresentada em Portugal como 20/10/26 - 27/10/26 e em UTC+5:30 como 21/10/26 - 28/10/26. O fuso Europe/Lisbon respeita horário de verão. [Formatação de datas](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat)

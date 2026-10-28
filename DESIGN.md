@@ -11,3 +11,7 @@ A compact header has no sidebar. Content is capped at 1208 px. Mobile navigation
 The onboarding headline is "Your alliance, week by week." Its form heading is "Set up your dashboard", and the button is "Start". The overview identifies players needing attention instead of highlighting reset time.
 
 New installations are empty. Fictional fixtures are used only in isolated tests.
+
+Minimum changes belong in Settings. The weekly editor displays the applied minimum without an edit action. Settings separates the default for new weeks from a collapsed saved-week correction form with a required reason.
+
+Light mode is P2: a future Settings choice between dark and light, persisted locally. The current version keeps the existing dark theme.
