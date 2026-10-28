@@ -6,7 +6,48 @@ export type Word = {
 };
 export type Observation = NonNullable<Collection['observations']>[number];
 export type ImageInput = Observation & { file: File; url: string };
-const score = (raw: string): number | null => {
+export function mergeImageLines(lines: Line[]): Line[] {
+  const groups = new Map<string, Line[]>();
+  for (const line of lines) {
+    const key =
+      line.observationId && line.state !== 'excluded'
+        ? line.name.normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('en')
+        : line.id;
+    groups.set(key, [...(groups.get(key) ?? []), line]);
+  }
+  return [...groups.values()].map((group) => {
+    if (group.length === 1) return group[0];
+    if (new Set(group.map((l) => l.playerId).filter(Boolean)).size > 1)
+      throw new Error(
+        'Repeated names are assigned to different players. Review their assignments before combining them.',
+      );
+    const originals = group.flatMap(
+      (line) =>
+        line.sourceRows ?? [
+          {
+            id: line.id,
+            observationId: line.observationId!,
+            name: line.name,
+            points: line.points,
+            rawPoints: line.rawPoints,
+            ocrConfidence: line.ocrConfidence,
+          },
+        ],
+    );
+    const values = [...new Set(group.map((l) => l.points).filter((v): v is number => v !== null))];
+    const conflict = values.length > 1 || group.some((l) => l.pointsConflict);
+    return {
+      ...group[0],
+      name: group[0].name.trim().replace(/\s+/g, ' '),
+      points: conflict ? null : (values[0] ?? null),
+      pointsConflict: conflict,
+      sourceRows: originals,
+      state: 'pending' as const,
+      playerId: null,
+    };
+  });
+}
+export const parseScore = (raw: string): number | null => {
   const text = raw.trim();
   if (!/^(?:\d+|\d{1,3}(?:[ ,.\u00a0]\d{3})+)$/.test(text)) return null;
   const value = Number(text.replace(/[ ,.\u00a0]/g, ''));
@@ -80,7 +121,7 @@ export function imageRows(
     output.push({
       id: uuid(),
       name,
-      points: numeric.length < columns ? null : score(raw),
+      points: numeric.length < columns ? null : parseScore(raw),
       rawPoints:
         numeric.length < columns
           ? 'Check missing score columns: ' + numeric.map((c) => c.text).join(' | ')
@@ -109,7 +150,7 @@ export function imageCollection(images: ImageInput[], rows: Line[]): Collection 
         ? 'automatic'
         : 'unknown',
     complete: false,
-    lines: rows,
+    lines: mergeImageLines(rows),
     observations: images.map(({ id, name, source, observedAt, timeSource }) => ({
       id,
       name,

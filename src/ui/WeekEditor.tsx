@@ -32,7 +32,9 @@ import { Modal, Field, Notice, number } from './Modal';
 import { PlayerForm } from './Players';
 import s from './ui.module.css';
 import ImageIntake from './ImageIntake';
+import ImageViewer from './ImageViewer';
 import type { ImageInput } from '../ocr/rows';
+import { mergeImageLines } from '../ocr/rows';
 export default function WeekEditor({
   data,
   commit,
@@ -58,6 +60,7 @@ export default function WeekEditor({
     [replacePoints, setReplacePoints] = useState(false);
   const [references, setReferences] = useState<ImageInput[]>([]);
   const [intakeVersion, setIntakeVersion] = useState(0);
+  const [preview, setPreview] = useState<{ name: string; url: string } | null>(null);
   const locale = navigator.language,
     zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const options = useMemo(() => {
@@ -287,6 +290,14 @@ export default function WeekEditor({
                         <span>Observed name · row {index + 1}</span>
                         <input
                           value={line.name}
+                          onBlur={() =>
+                            run(async () => {
+                              setCollection({
+                                ...collection,
+                                lines: mergeImageLines(collection.lines),
+                              });
+                            })
+                          }
                           onChange={(e) =>
                             updateLine(line.id, {
                               name: e.target.value,
@@ -296,7 +307,10 @@ export default function WeekEditor({
                           }
                         />
                       </label>
-                      {line.observationId && (
+                      {line.sourceRows && (
+                        <small>{line.sourceRows.length} matching observations · one score</small>
+                      )}
+                      {line.observationId && !line.sourceRows && (
                         <small>
                           {collection.observations?.find((o) => o.id === line.observationId)?.name}
                         </small>
@@ -316,28 +330,72 @@ export default function WeekEditor({
                                 : 'Assignment to confirm'}
                       </small>
                     </div>
-                    <Field
-                      label="Points"
-                      hint={
-                        line.points === null && line.rawPoints?.trim()
-                          ? 'Unrecognized value: ' +
-                            line.rawPoints +
-                            '. Correct it or confirm that it should stay unrecorded.'
-                          : undefined
-                      }
-                    >
-                      <input
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={line.points ?? ''}
-                        onChange={(e) =>
-                          updateLine(line.id, {
-                            points: e.target.value === '' ? null : Number(e.target.value),
-                          })
+                    <div>
+                      <Field
+                        label="Points"
+                        hint={
+                          !line.pointsConflict && line.points === null && line.rawPoints?.trim()
+                            ? 'Unrecognized value: ' +
+                              line.rawPoints +
+                              '. Correct it or confirm that it should stay unrecorded.'
+                            : undefined
                         }
-                      />
-                    </Field>
+                      >
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={line.points ?? ''}
+                          onChange={(e) =>
+                            updateLine(line.id, {
+                              points: e.target.value === '' ? null : Number(e.target.value),
+                              pointsConflict: false,
+                            })
+                          }
+                        />
+                      </Field>
+                      {line.pointsConflict && (
+                        <div role="alert">
+                          <p className={s.warningText}>
+                            Different totals in these images. Choose a value or correct it above.
+                          </p>
+                          <div className={s.actions}>
+                            {[
+                              ...new Set(
+                                line.sourceRows
+                                  ?.map((row) => row.points)
+                                  .filter((v): v is number => v !== null),
+                              ),
+                            ].map((points) => (
+                              <button
+                                key={points}
+                                onClick={() =>
+                                  updateLine(line.id, { points, pointsConflict: false })
+                                }
+                              >
+                                Use {number(points)} points
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {line.sourceRows && (
+                        <details>
+                          <summary>Original observations</summary>
+                          <ul>
+                            {line.sourceRows.map((row) => (
+                              <li key={row.id}>
+                                {
+                                  collection.observations?.find((o) => o.id === row.observationId)
+                                    ?.name
+                                }{' '}
+                                · {number(row.points)} points
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      )}
+                    </div>
                     <div className={s.rowActions}>
                       {line.playerId &&
                         week.results[line.playerId] &&
@@ -440,11 +498,17 @@ export default function WeekEditor({
           <details open>
             <summary>Reference images</summary>
             <div className={s.imageReference}>
-              {references.map((image) => (
+              {references.map((image, index) => (
                 <figure key={image.id}>
-                  <a href={image.url} target="_blank" rel="noreferrer">
+                  <button
+                    type="button"
+                    className={s.imagePreviewButton}
+                    aria-label={'View reference image ' + (index + 1)}
+                    onClick={() => setPreview(image)}
+                  >
                     <img src={image.url} alt={'Reference: ' + image.name} />
-                  </a>
+                    <span>View and zoom</span>
+                  </button>
                   <figcaption>{image.name}</figcaption>
                 </figure>
               ))}
@@ -779,6 +843,7 @@ export default function WeekEditor({
           </footer>
         </Modal>
       )}
+      {preview && <ImageViewer image={preview} onClose={() => setPreview(null)} />}
     </>
   );
 }

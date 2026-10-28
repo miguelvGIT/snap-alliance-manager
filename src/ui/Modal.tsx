@@ -5,10 +5,12 @@ export function Modal({
   title,
   children,
   onClose,
+  className,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const close = useRef(onClose);
@@ -27,7 +29,7 @@ export function Modal({
     };
   }, []);
   return (
-    <dialog ref={ref} className={s.modal} aria-label={title}>
+    <dialog ref={ref} className={[s.modal, className].filter(Boolean).join(' ')} aria-label={title}>
       <header>
         <h2>{title}</h2>
         <button type="button" className={s.iconButton} aria-label="Close" onClick={onClose}>

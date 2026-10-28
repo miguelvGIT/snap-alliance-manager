@@ -17,8 +17,8 @@ export async function scoreImage(page: Page, rows: [string, string][]) {
     rows.forEach(([name, points], i) => {
       const y = 125 + i * 90;
       c.fillText(name, 40, y);
-      c.fillText('100', 450, y);
-      c.fillText('200', 620, y);
+      c.fillText('0', 450, y);
+      c.fillText(points, 620, y);
       c.fillText(points, 830, y);
     });
     return canvas.toDataURL('image/png').split(',')[1];

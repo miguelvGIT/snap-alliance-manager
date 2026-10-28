@@ -4,7 +4,10 @@ const fake = vi.hoisted(() => ({
   recognize: vi.fn(),
   setParameters: vi.fn(async () => {}),
 }));
-vi.mock('tesseract.js', () => ({ createWorker: async () => fake, PSM: { SPARSE_TEXT: '11' } }));
+vi.mock('tesseract.js', () => ({
+  createWorker: async () => fake,
+  PSM: { SINGLE_BLOCK: '6', SINGLE_LINE: '7' },
+}));
 import { readImages } from '../src/ocr/reader';
 import type { ImageInput } from '../src/ocr/rows';
 afterEach(() => vi.unstubAllGlobals());
@@ -12,7 +15,14 @@ it('cancels a stalled recognition without waiting for a terminated worker to res
   vi.stubGlobal('location', { href: 'http://127.0.0.1/' });
   vi.stubGlobal('createImageBitmap', async () => ({ width: 100, height: 100, close() {} }));
   vi.stubGlobal('document', {
-    createElement: () => ({ getContext: () => ({ fillRect() {}, drawImage() {} }) }),
+    createElement: () => ({
+      getContext: () => ({
+        fillRect() {},
+        drawImage() {},
+        getImageData: () => ({ data: new Uint8ClampedArray(16) }),
+        putImageData() {},
+      }),
+    }),
   });
   let started!: () => void;
   const recognizing = new Promise<void>((resolve) => {

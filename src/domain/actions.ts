@@ -170,6 +170,10 @@ export function saveCollection(
     (draft) => {
       const week = draft.weeks.find((w) => w.id === weekId)!;
       const seen = new Map<string, number | null>();
+      if (collection.lines.some((line) => line.state === 'confirmed' && line.pointsConflict))
+        throw new Error(
+          'Choose the total for each name with different scores in the images before assigning it.',
+        );
       for (const line of collection.lines)
         if (line.state === 'confirmed' && line.playerId) {
           if (seen.has(line.playerId) && seen.get(line.playerId) !== line.points)

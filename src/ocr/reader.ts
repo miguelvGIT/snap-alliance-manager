@@ -1,5 +1,6 @@
 import type { Worker } from 'tesseract.js';
-import { imageCollection, imageRows, type ImageInput } from './rows';
+import { imageCollection, parseScore, type ImageInput, type Word } from './rows';
+import { columnEdges, columnProposals } from './columns';
 function abortable<T>(task: Promise<T>, signal: AbortSignal): Promise<T> {
   return new Promise((resolve, reject) => {
     const cancel = () => reject(new DOMException('Reading cancelled', 'AbortError'));
@@ -58,7 +59,7 @@ export async function readImages(
     if (signal.aborted) throw new DOMException('Reading cancelled', 'AbortError');
     await abortable(
       worker.setParameters({
-        tessedit_pageseg_mode: PSM.SPARSE_TEXT,
+        tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
         preserve_interword_spaces: '1',
       }),
       signal,
@@ -68,11 +69,7 @@ export async function readImages(
       if (signal.aborted) throw new DOMException('Reading cancelled', 'AbortError');
       progress('Reading image ' + (index + 1) + ' of ' + images.length + '…');
       const bitmap = await createImageBitmap(images[index].file);
-      const scale = Math.min(
-        2,
-        Math.max(1, 1600 / bitmap.width),
-        4096 / Math.max(bitmap.width, bitmap.height),
-      );
+      const scale = Math.min(2, 4096 / Math.max(bitmap.width, bitmap.height));
       const canvas = document.createElement('canvas');
       canvas.width = Math.round(bitmap.width * scale);
       canvas.height = Math.round(bitmap.height * scale);
@@ -81,21 +78,103 @@ export async function readImages(
       context.fillRect(0, 0, canvas.width, canvas.height);
       context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
       bitmap.close();
-      const { data } = await abortable(
-        worker.recognize(canvas, {}, { text: true, blocks: true }),
-        signal,
-      );
-      const words =
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+      let light = 0,
+        samples = 0;
+      for (let k = 0; k < pixels.data.length; k += 400) {
+        light += pixels.data[k] + pixels.data[k + 1] + pixels.data[k + 2] > 384 ? 1 : 0;
+        samples++;
+      }
+      const dark = light < samples / 2;
+      for (let k = 0; k < pixels.data.length; k += 4) {
+        const ink = dark
+          ? Math.min(pixels.data[k], pixels.data[k + 1], pixels.data[k + 2]) > 130
+          : Math.max(pixels.data[k], pixels.data[k + 1], pixels.data[k + 2]) < 130;
+        pixels.data[k] = pixels.data[k + 1] = pixels.data[k + 2] = ink ? 0 : 255;
+      }
+      context.putImageData(pixels, 0, 0);
+      const words = (data: Awaited<ReturnType<Worker['recognize']>>['data']): Word[] =>
         data.blocks?.flatMap((block) =>
           block.paragraphs.flatMap((paragraph) => paragraph.lines.flatMap((line) => line.words)),
         ) ?? [];
-      lines.push(...imageRows(words, images[index].id, columns, fromRight));
+      await abortable(worker.setParameters({ tessedit_char_whitelist: '' }), signal);
+      await abortable(worker.setParameters({ tessedit_pageseg_mode: PSM.SINGLE_BLOCK }), signal);
+      const initial = words(
+        (await abortable(worker.recognize(canvas, {}, { text: true, blocks: true }), signal)).data,
+      );
+      const edges = columnEdges(initial, canvas.width, columns);
+      const separated: Word[][] = [];
+      for (let column = 0; column <= columns; column++) {
+        await abortable(
+          worker.setParameters({ tessedit_char_whitelist: column ? '0123456789,.' : '' }),
+          signal,
+        );
+        const rectangle = {
+          left: edges[column],
+          top: 0,
+          width: edges[column + 1] - edges[column],
+          height: canvas.height,
+        };
+        separated.push(
+          words(
+            (
+              await abortable(
+                worker.recognize(canvas, { rectangle }, { text: true, blocks: true }),
+                signal,
+              )
+            ).data,
+          ),
+        );
+      }
+      const scoreColumns = separated.slice(1);
+      if (fromRight) {
+        const selected = scoreColumns.splice(scoreColumns.length - 1 - fromRight, 1)[0];
+        scoreColumns.push(selected);
+      }
+      const proposals = columnProposals(
+        separated[0],
+        scoreColumns,
+        images[index].id,
+        canvas.height,
+      );
+      for (const proposal of proposals.filter((p) => p.line.points === null)) {
+        await abortable(
+          worker.setParameters({
+            tessedit_pageseg_mode: PSM.SINGLE_LINE,
+            tessedit_char_whitelist: '0123456789,.',
+          }),
+          signal,
+        );
+        const h = proposal.bottom - proposal.top;
+        const top = Math.max(0, Math.floor(proposal.top - h * 0.22));
+        const rectangle = {
+          left: edges.at(-2)!,
+          top,
+          width: canvas.width - edges.at(-2)!,
+          height: Math.min(canvas.height - top, Math.ceil(h * 1.45)),
+        };
+        const result = await abortable(
+          worker.recognize(canvas, { rectangle }, { text: true }),
+          signal,
+        );
+        const value = parseScore(result.data.text.trim());
+        const consistent =
+          columns !== 3 ||
+          (proposal.values[0] !== null &&
+            proposal.values[1] !== null &&
+            proposal.values[0] + proposal.values[1] === value);
+        if (value !== null && consistent) {
+          proposal.line.points = value;
+          proposal.line.rawPoints = result.data.text.trim();
+        }
+      }
+      lines.push(...proposals.map((p) => p.line));
       canvas.width = 0;
       canvas.height = 0;
     }
     if (!lines.length)
       throw new Error(
-        'No player rows were found. Use clear screenshots showing the player names and score columns. You can also try the Player / Total layout for a cropped table.',
+        'No player rows were found. Use clear screenshots showing Player, Cube, Bounty and Total. Pause scrolling before capturing each group of rows.',
       );
     return imageCollection(images, lines);
   } finally {

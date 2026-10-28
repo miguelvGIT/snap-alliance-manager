@@ -17,6 +17,19 @@ export const lineSchema = z.object({
   rawPoints: z.string().optional(),
   observationId: id.optional(),
   ocrConfidence: z.number().min(0).max(100).optional(),
+  pointsConflict: z.boolean().optional(),
+  sourceRows: z
+    .array(
+      z.object({
+        id,
+        observationId: id,
+        name: z.string(),
+        points: points.nullable(),
+        rawPoints: z.string().optional(),
+        ocrConfidence: z.number().min(0).max(100).optional(),
+      }),
+    )
+    .optional(),
   playerId: id.nullable(),
   state: z.enum(['pending', 'confirmed', 'excluded']),
 });
@@ -136,6 +149,8 @@ export const datasetSchema = z
         for (const line of c.lines) {
           if (line.observationId && !observations.has(line.observationId))
             ctx.addIssue({ code: 'custom', message: 'Image observation not found' });
+          if (line.sourceRows?.some((row) => !observations.has(row.observationId)))
+            ctx.addIssue({ code: 'custom', message: 'Original image observation not found' });
           if (line.playerId && !seen.has(line.playerId))
             ctx.addIssue({ code: 'custom', message: 'Invalid player assignment' });
           if (line.state === 'confirmed' && !line.playerId)

@@ -77,9 +77,11 @@ describe('AC55 AC90: local image proposals', () => {
     });
     expect(() =>
       saveCollection(data, weekId, collection, { reason: 'Image review', allowReplacement: true }),
-    ).toThrow('Two rows');
-    collection.lines[0].state = 'excluded';
-    collection.lines[0].playerId = null;
+    ).toThrow('Choose the total');
+    expect(collection.lines).toHaveLength(1);
+    expect(collection.lines[0].sourceRows).toHaveLength(2);
+    collection.lines[0].points = 2900;
+    collection.lines[0].pointsConflict = false;
     data = saveCollection(data, weekId, collection, {
       reason: 'Image review',
       allowReplacement: true,
@@ -89,5 +91,8 @@ describe('AC55 AC90: local image proposals', () => {
       collection.observations,
     );
     expect(restored.weeks.find((w) => w.id === weekId)!.results[playerId].points).toBe(2900);
+    expect(
+      restored.weeks.find((w) => w.id === weekId)!.collections.at(-1)!.lines[0].sourceRows,
+    ).toHaveLength(2);
   });
 });

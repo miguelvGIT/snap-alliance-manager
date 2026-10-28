@@ -6,6 +6,7 @@ import type { ImageInput } from '../ocr/rows';
 import { readImages } from '../ocr/reader';
 import { Field, Notice } from './Modal';
 import s from './ui.module.css';
+import ImageViewer from './ImageViewer';
 
 const MAX_IMAGES = 20;
 export default function ImageIntake({
@@ -20,7 +21,7 @@ export default function ImageIntake({
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const [capturing, setCapturing] = useState(false);
-  const [layout, setLayout] = useState('3');
+  const [preview, setPreview] = useState<ImageInput | null>(null);
   const urls = useRef(new Set<string>());
   const imagesRef = useRef(images);
   imagesRef.current = images;
@@ -144,7 +145,9 @@ export default function ImageIntake({
       await video.play();
       if (capture.current !== active) return;
       setCapturing(true);
-      setStatus('Capturing visible rows. Scroll the game table slowly, then stop capture.');
+      setStatus(
+        'Capturing visible rows. Scroll slowly and pause on each group of rows, then stop capture.',
+      );
       let last = '',
         grabbing = false;
       const frame = async () => {
@@ -207,7 +210,7 @@ export default function ImageIntake({
     setBusy(true);
     setError('');
     try {
-      const result = await readImages(images, Number(layout), 0, setStatus, controller.signal);
+      const result = await readImages(images, 3, 0, setStatus, controller.signal);
       if (!controller.signal.aborted) onReview(result, images);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
@@ -300,7 +303,16 @@ export default function ImageIntake({
           <div className={s.imageIntake}>
             {images.map((image, index) => (
               <figure key={image.id}>
-                <img src={image.url} alt={'Screenshot ' + (index + 1)} />
+                <button
+                  type="button"
+                  className={s.imagePreviewButton}
+                  aria-label={'View image ' + (index + 1)}
+                  disabled={busy || capturing}
+                  onClick={() => setPreview(image)}
+                >
+                  <img src={image.url} alt={'Screenshot ' + (index + 1)} />
+                  <span>View and zoom</span>
+                </button>
                 <figcaption>{image.name}</figcaption>
                 <Field
                   label={'Capture time · image ' + (index + 1)}
@@ -342,19 +354,6 @@ export default function ImageIntake({
               </figure>
             ))}
           </div>
-          <Field
-            label="Screenshot columns"
-            hint="Use the layout visible in your images. Total points are read from the rightmost column."
-          >
-            <select
-              value={layout}
-              disabled={busy || capturing}
-              onChange={(e) => setLayout(e.target.value)}
-            >
-              <option value="3">Player / Cube / Bounty / Total</option>
-              <option value="1">Player / Total (cropped table)</option>
-            </select>
-          </Field>
           <div className={s.actions}>
             <button className={s.primary} disabled={busy || capturing} onClick={() => void read()}>
               Read {images.length === 1 ? 'image' : images.length + ' images'}
@@ -371,12 +370,14 @@ export default function ImageIntake({
             )}
           </div>
           <p className={s.hint}>
-            Overlapping rows are kept for review. Points are never added together. Image files are
-            kept only while this screen is open; saved data includes their names and capture times.
+            Repeated names appear once, with their original observations available for review.
+            Different totals need your choice. Image files are kept only while this screen is open;
+            saved data includes their names and capture times.
           </p>
         </>
       )}
       {status && <p role="status">{status}</p>}
+      {preview && <ImageViewer image={preview} onClose={() => setPreview(null)} />}
     </div>
   );
 }

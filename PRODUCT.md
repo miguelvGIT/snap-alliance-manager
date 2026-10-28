@@ -28,4 +28,4 @@ Support URL confirmed by the user: https://ko-fi.com/tequilasunsett. "Alliance" 
 
 ## Evidence and open checks
 
-PLANO.md and TESTES_ACEITACAO.md contain confirmed behavior. Real OCR samples and native-device/calendar checks are unavailable. VALIDACAO.md records executed checks and release blockers.
+PLANO.md and TESTES_ACEITACAO.md contain confirmed behavior. Four supplied real screenshots have been checked locally as two separate weekly batches. The broader OCR corpus and native-device/calendar checks remain open. VALIDACAO.md records executed checks and release blockers.

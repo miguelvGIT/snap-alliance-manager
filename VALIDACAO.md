@@ -8,8 +8,8 @@
 | --- | --- |
 | TypeScript build check | Passed |
 | Production frontend/PWA build | Passed |
-| Vitest | 73 distinct tests passed: 34 domain, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API and 6 OCR/cancellation. Full 72-test run plus the added cancellation check and targeted OCR rerun. |
-| Playwright | 39 browser checks passed on compiled local Cloudflare assets across 1440×900, 768×1024 and 390×844. After capture-cleanup/cancellation refinements, all 21 affected image/local checks passed again. Notification state and screen sharing are simulated; OCR runs the real packaged engine. |
+| Vitest | 79 tests passed: 34 domain, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API and 12 OCR/cancellation/column/grouping checks. |
+| Playwright | 42 distinct checks passed across 1440×900, 768×1024 and 390×844 on compiled local Cloudflare assets: 39 full-suite passes plus the corrected three conflict checks in the final 12-image-check run. Image checks include zoom before/after recognition, capture-to-total reading, clipboard, grouping and explicit conflict choice. Notification state and screen sharing are simulated; OCR uses the real packaged engine. |
 | Deferred P2 browser tests | Three sync-test skips; automatic sync is disabled in the shipped MVP |
 | Cloudflare package | Dry run passed; no upload/deployment |
 | Visual inspection | 0 failures; one small-text warning for secondary copy and metadata |
@@ -55,7 +55,7 @@ Examples of partial coverage that need stronger checks:
 - AC31 is now P2: the retained prototype checks server-side conflict retention, not the complete two-session resolution flow.
 - AC40 checks invalid calendar/queue lead times and a browser change to 60 minutes. The complete preset/invalid-field reminder-settings flow still needs explicit coverage.
 - AC67/AC68 now include per-image unknown/manual times, automatic simulated-frame times and metadata surviving backup; the full corrected multi-capture timeline/revision scenario remains open.
-- AC55/AC56/AC90 have real-engine tests on clear fictional screenshots, simulated video frames and clipboard inputs. Real game capture accuracy, native window selection, mobile clipboard permissions and the full 20-image boundary/recovery corpus remain open.
+- AC55/AC56/AC90 have real-engine tests on fictional screenshots, simulated video frames and clipboard inputs, plus four real game screenshots processed locally. The remaining representative corpus, native window selection, mobile clipboard permissions and full 20-image boundary/recovery checks remain open.
 - AC74 is now P2: the retained prototype triggers thirty edit events around one pending operation, not thirty real result edits and multiple tabs.
 - AC80 checks contact search, not all search keys and ordering invariants.
 - AC87 checks backup retention of a pending row; the browser sync test changes a name but does not assert the full rename-decision/alias/pending-row round trip.
@@ -75,14 +75,14 @@ Examples of partial coverage that need stronger checks:
 | P1, RF17 / AC76 | Import the generated file into target calendar clients and verify the actual recurrence/alarm, including changes and duplicate-event handling. |
 | PLANO stage 6 | Run a real collection/reset pilot, verify the contribution column, consult history afterward, restore a backup and check reminders. Automatic sync belongs to P2. |
 
-The next MVP work is real-image OCR validation and the remaining local acceptance checks, followed by release/device evidence. The reminder corrections have regression tests. Automatic sync/remote conflicts, conditional Ko-fi paid access, saved-video import, light mode, FUT01–FUT03, other-game support and localization remain P2; AC29 remains retired.
+The next MVP work is broader real-image OCR validation and the remaining local acceptance checks, followed by release/device evidence. The reminder corrections have regression tests. Automatic sync/remote conflicts, conditional Ko-fi paid access, saved-video import, light mode, FUT01–FUT03, other-game support and localization remain P2; AC29 remains retired.
 
 ## Implemented local paths
 
 - Local use without an account; private IndexedDB data.
 - Players, previous names, contacts, membership periods and weekly records.
 - Separate unknown-name and missing-name warnings; manual assignment/renaming.
-- Multi-image selection, clipboard image events and the Clipboard button; local OCR proposals with total-column selection, reference images and manual correction. No bulk text-entry interface.
+- Multi-image selection, clipboard events and the Clipboard button; fixed game columns detected automatically, local OCR proposals and manual correction. Repeated names appear once with preserved originals and explicit total-conflict choices. Captured images/references open in a zoom/pan viewer. No bulk text entry or column-layout selector.
 - Assisted visible-frame capture in compatible desktop browsers with per-frame timestamps, explicit stopping and unmount cleanup. Native game/window capture remains a release check.
 - Historical minimums, zero/missing distinction, partial-entry exemptions and manually justified exemptions.
 - Eligible lifetime averages and missed-minimum counts; eight recent weeks on the overview.
@@ -148,3 +148,18 @@ Two browser scenarios run at each width: failed schedule change/reload/recovery 
 ## Minimum settings increment checks
 
 The weekly editor displays the applicable minimum without an edit action. All minimum changes are in Settings: the default for new weeks and a separate, collapsed saved-week correction with a mandatory reason. Tests at 1440/768/390 px verify historical isolation, old/new values in the exported revision, indicator recalculation and the absence of the old action. Light mode is planned as P2 only.
+
+## Real screenshot and image-review increment
+
+Four user-provided screenshots were processed on localhost as two independent weekly batches, without importing them into the visible user browser. Raw captures, transcripts and recognized names remain in ignored local diagnostics and are excluded from Git, deployment assets and logs.
+
+| Batch | Proposed rows before grouping | Visible unique names | Missing totals after grouping | Numeric totals versus visual reference | External HTTP requests |
+| --- | --- | --- | --- | --- | --- |
+| Images 1–2 | 46 | 29 | 0 | Match | 0 |
+| Images 3–4 | 33 | 30 | 0 | Match | 0 |
+
+The first reader omitted many zero rows. The corrected reader prepares text contrast, removes colored role-icon noise, infers score-column positions, reads numbers separately and retries uncertain totals within their row. Cut-off names are omitted; missing/covered totals stay unknown unless another readable observation of that exact name supplies the value. Cube + Bounty checks consistency; it never substitutes for an unreadable Total.
+
+Repeated names are grouped within each collection, without assigning a player identity or merging merely similar names. Original readings and image/time links survive backup. Conflicting totals require an explicit choice or manual correction before a confirmed result is saved. The UI uses the game's fixed format and offers image zoom, fit, actual size and panning both before reading and in the review.
+
+Stylized names and ambiguous letters still need manual verification. Four screenshots from two weeks are useful regression evidence, not the planned 20-image representative accuracy study or proof of native game-window capture. No claim of perfect name recognition is made.
