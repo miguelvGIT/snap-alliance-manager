@@ -1,0 +1,92 @@
+import { useEffect, useRef, useState } from 'react';
+import { type Dataset } from '../domain/model';
+import { db, readDataset, saveDataset } from '../data/store';
+import { SyncEngine } from '../sync/client';
+export function useAlliance() {
+  const [data, setData] = useState<Dataset | null>(null),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState(''),
+    [syncStatus, setSyncStatus] = useState('Saved on this device');
+  const [storageFailure, setStorageFailure] = useState(false);
+  const unsaved = useRef(false);
+  const current = useRef<Dataset | null>(null);
+  const channel = useRef<BroadcastChannel | null>(null);
+  const engine = useRef<SyncEngine | null>(null);
+  const update = (next: Dataset | null) => {
+    current.current = next;
+    setData(next);
+  };
+  useEffect(() => {
+    let mounted = true;
+    readDataset()
+      .then((value) => {
+        if (mounted) update(value);
+      })
+      .catch(() => {
+        setStorageFailure(true);
+        setError('Could not read the stored data. Your original data has been kept.');
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    const sync = new SyncEngine((next, status) => {
+      if (unsaved.current) return;
+      if (next) update(next);
+      setSyncStatus(status);
+    });
+    engine.current = sync;
+    sync.start();
+    const broadcast = new BroadcastChannel('alliance-data');
+    channel.current = broadcast;
+    broadcast.onmessage = () => {
+      if (!unsaved.current)
+        readDataset()
+          .then(update)
+          .catch(() => {});
+    };
+    const protect = (event: BeforeUnloadEvent) => {
+      if (unsaved.current) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', protect);
+    return () => {
+      mounted = false;
+      sync.stop();
+      broadcast.close();
+      window.removeEventListener('beforeunload', protect);
+    };
+  }, []);
+  async function commit(next: Dataset) {
+    const previous = current.current;
+    update(next);
+    try {
+      await saveDataset(next, previous);
+      unsaved.current = false;
+      setError('');
+      setSyncStatus('Saved on this device');
+      channel.current?.postMessage('changed');
+      engine.current?.edited();
+    } catch (e) {
+      unsaved.current = true;
+      engine.current?.stop();
+      setSyncStatus('Unsaved changes · export a copy');
+      setError((e as Error).message + ' Your changes remain in this window; export a copy.');
+      throw e;
+    }
+    return next;
+  }
+  async function reload() {
+    update(await readDataset());
+    if (unsaved.current) {
+      unsaved.current = false;
+      engine.current?.start();
+    }
+    setStorageFailure(false);
+    setError('');
+    channel.current?.postMessage('changed');
+  }
+  return { data, loading, error, setError, commit, reload, syncStatus, engine, db, storageFailure };
+}
+export type Commit = (data: Dataset) => Promise<Dataset>;

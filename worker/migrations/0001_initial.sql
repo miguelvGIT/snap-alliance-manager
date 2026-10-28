@@ -1,0 +1,13 @@
+PRAGMA foreign_keys = ON;
+CREATE TABLE spaces (id TEXT PRIMARY KEY, dataset_id TEXT NOT NULL, recovery_hash TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE devices (id TEXT PRIMARY KEY, space_id TEXT NOT NULL REFERENCES spaces(id), token_hash TEXT NOT NULL UNIQUE, label TEXT NOT NULL, revoked INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX devices_space ON devices(space_id);
+CREATE TABLE heads (space_id TEXT NOT NULL REFERENCES spaces(id), entity_key TEXT NOT NULL, revision TEXT NOT NULL, value_json TEXT NOT NULL, PRIMARY KEY(space_id,entity_key));
+CREATE TABLE changes (seq INTEGER PRIMARY KEY AUTOINCREMENT, space_id TEXT NOT NULL REFERENCES spaces(id), operation_id TEXT NOT NULL UNIQUE, operation_json TEXT NOT NULL, conflict INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
+CREATE INDEX changes_cursor ON changes(space_id,seq);
+CREATE TABLE invites (id TEXT PRIMARY KEY, space_id TEXT NOT NULL REFERENCES spaces(id), secret_hash TEXT NOT NULL, expires_at INTEGER NOT NULL, used INTEGER NOT NULL DEFAULT 0, attempts INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE join_requests (id TEXT PRIMARY KEY, invite_id TEXT NOT NULL REFERENCES invites(id), claim_hash TEXT NOT NULL, label TEXT NOT NULL, verification TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', token_claimed INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX joins_invite ON join_requests(invite_id);
+CREATE TABLE reminders (id TEXT PRIMARY KEY, token_hash TEXT NOT NULL UNIQUE, subscription_json TEXT NOT NULL, lead_minutes INTEGER NOT NULL, next_due INTEGER NOT NULL, reset_at TEXT NOT NULL, week_id TEXT NOT NULL, sent_week TEXT, lease_until INTEGER NOT NULL DEFAULT 0, attempts INTEGER NOT NULL DEFAULT 0);
+CREATE INDEX reminders_due ON reminders(next_due,lease_until);
+CREATE TABLE rate_limits (bucket TEXT PRIMARY KEY, count INTEGER NOT NULL, expires INTEGER NOT NULL);
