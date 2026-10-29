@@ -56,6 +56,6 @@ Sincronização automática fica oculta e bloqueada na versão MVP. Se no futuro
 
 Usa Vitest, Playwright e Wrangler/D1 locais sem contactar produção. Preserva os IDs AC existentes: AC29 está retirado, os P2 só são obrigatórios se a funcionalidade entrar na versão, e os P0/P1 aplicáveis são o critério do MVP.
 
-Publica apenas os ficheiros da PWA num endereço HTTPS estável, nunca dados reais de jogadores, backups ou segredos. O código pode ser versionado em repositório privado; dados e credenciais não.
+Publica apenas os ficheiros da PWA num endereço HTTPS estável, nunca dados reais de jogadores, backups ou segredos. O código está no repositório público autorizado https://github.com/miguelvGIT/snap-alliance-manager; dados de utilizadores e credenciais continuam privados e excluídos do Git.
 
 Por entrega, comunica o que mudou, os cenários realmente verificados, o consumo observado e o que ficou pendente. Não declarar o MVP concluído com critérios obrigatórios por demonstrar. O URL de apoio já foi confirmado: https://ko-fi.com/tequilasunsett. As amostras do jogo e os dispositivos/clientes alvo têm de ser confirmados antes do lançamento.

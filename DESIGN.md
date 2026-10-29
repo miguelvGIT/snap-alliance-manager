@@ -12,6 +12,8 @@ The onboarding headline is "Your alliance, week by week." Its form heading is "S
 
 New installations are empty. Fictional fixtures are used only in isolated tests.
 
+Before setup, hide the entire top bar and mobile menu. Keep Support the project in the footer. A successful Start or backup import, or loading an existing dashboard, reveals the regular header and navigation.
+
 Players separates Alliance roster from Former players. Each former-player row shows name, contact, departure date and reason with wrapping text. The profile keeps every membership period and its departure reason. Remove from roster asks for a date and required reason before confirmation; rejoining preserves the same identity and earlier reasons. Search covers both sections. Legacy departures without reasons have an explicit fallback label.
 
 Minimum changes belong in Settings. The weekly editor displays the applied minimum without an edit action. Settings separates the default for new weeks from a collapsed saved-week correction form with a required reason.

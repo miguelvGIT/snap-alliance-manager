@@ -11,7 +11,7 @@ Ajudar gestores de alianças a preservar a contribuição semanal dos jogadores 
 | Tema | Decisão |
 | --- | --- |
 | Idioma da interface | Inglês nesta versão. Localização para outros idiomas fica para o futuro; datas e horas continuam no formato/fuso do dispositivo. |
-| Apresentação | Explicar o que a aplicação faz. Sem destaques da hora do reset no início ou na visão geral. O formulário inicial diz «Set up your dashboard» e a ação é «Start»; regista uma aliança existente no jogo. |
+| Apresentação | Explicar o que a aplicação faz. Sem destaques da hora do reset no início ou na visão geral. O formulário inicial diz «Set up your dashboard» e a ação é «Start»; regista uma aliança existente no jogo. Ocultar a barra superior antes de iniciar/importar o painel; a ligação de apoio fica no rodapé. Mostrar a navegação após configuração, importação válida ou leitura dos dados locais existentes. |
 | Plataforma | PWA instalável e utilizável no navegador. iOS, Android e Windows obrigatórios; macOS desejável. |
 | Acesso | Entrada direta, sem conta. Não criar uma conta remota anónima para permitir usar a aplicação. |
 | Dados | Persistência no próprio dispositivo. Enviar tabelas para um serviço remoto apenas após ativação explícita de sincronização. |
@@ -371,6 +371,6 @@ O URL de apoio já foi confirmado: https://ko-fi.com/tequilasunsett. Quatro capt
 
 - Usar este plano como fonte de comportamento e TESTES_ACEITACAO.md como critérios; não acrescentar histórico de conversa ou comparações aos documentos.
 - Manter instruções curtas em AGENTS.md com privacidade, orçamento, estrutura e comandos reais de verificação.
-- Usar Git/repositório privado para código; nunca guardar dados reais, backups ou segredos. GitHub é uma integração opcional.
+- Versionar o código no repositório público https://github.com/miguelvGIT/snap-alliance-manager, conforme autorizado pelo utilizador em 29/10/2026. Nunca guardar dados reais, backups ou segredos; os dados das alianças continuam locais e privados.
 - Usar Playwright para fluxos e Wrangler/D1 para serviços locais; impedir testes de contactar produção. Testes de instalação/push/calendário exigem dispositivos/clientes reais.
 - Consultar a documentação atual das ferramentas durante a implementação. Skills próprias só quando houver um fluxo repetitivo que as justifique.

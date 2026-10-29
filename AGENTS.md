@@ -3,6 +3,7 @@
 - Product behavior: PLANO.md and TESTES_ACEITACAO.md. Preserve acceptance IDs.
 - UI copy is English-only for this version. Localization is future work; preserve device-local dates.
 - Onboarding tracks an existing alliance. Do not imply creating an alliance in the game. The initial action is "Start".
+- Hide the top bar/mobile menu before a dashboard exists; keep support in the footer. Reveal navigation after setup/import or loading stored data. The source repository is public by user authorization; records, screenshots, backups and secrets stay out of Git.
 - Do not highlight reset time on onboarding or the overview. Reminder settings and collection metadata may show operational timing.
 - Stack: React/TypeScript/Vite/CSS Modules, Dexie/IndexedDB, Zod, Cloudflare Workers/D1.
 - Commands: `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm test:e2e`, `pnpm db:migrate`, `pnpm dev:api`.

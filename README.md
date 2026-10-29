@@ -6,6 +6,8 @@ Public test version: https://snap-alliance-manager.snap-alliance-manager.workers
 
 Save weekly scores, review missed minimums, and preserve history when names change. The app tracks an existing alliance; it does not create one in the game.
 
+Public source repository: https://github.com/miguelvGIT/snap-alliance-manager. Player records, screenshots, backups and credentials are excluded from the repository.
+
 ## Run locally
 
 Use Node.js 22 or newer and pnpm.
@@ -36,6 +38,8 @@ Tests use fictional data and isolated contexts. No production account or databas
 ## First use
 
 Enter your existing alliance's name and minimum/target, then select **Start**. You can also import a complete backup.
+
+The top navigation appears once a dashboard exists, including after a backup import or when returning to saved local data. Before setup, Support the project remains available in the footer.
 
 - **Record scores:** add multiple screenshots or paste clipboard images without saving a file. Read them locally, check total points against the images, and confirm assignments. Compatible desktop browsers can capture visible game rows while you scroll the authorized window. Unknown and missing names are highlighted separately; you confirm name changes and new players.
 - **Validate a week:** missing or unresolved fields are highlighted and focus moves to the first one. A week becomes validated only after the final confirmation saves successfully; canceling or a failed save keeps the review open. Weeks with known scores can be explicitly confirmed as incomplete. Revision and score-correction notes are optional; exemption and historical-minimum reasons are still required. Success shows the saved-score count and an overview link; current-week totals appear immediately while historical averages/misses wait until the week ends.

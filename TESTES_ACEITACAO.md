@@ -38,6 +38,7 @@ Arredondar apenas a apresentação da média a duas casas; usar o valor original
 | ID | Prioridade | Dado / Quando | Então — resultado observável | Verificação |
 | --- | --- | --- | --- | --- |
 | AC01 | P0 | Dada uma instalação nova sem conta, quando o gestor cria a aliança e define mínimo 2 700 e meta 80 000. | Entra diretamente e os dados reaparecem ao reabrir; o reset terça 19:00 UTC é apresentado na hora local e não é editável. | Automático, fluxo completo. |
+| AC97 | P0 | Numa instalação sem dados, antes de Start; e após configuração, importação válida ou reabertura com dados guardados. | Antes de iniciar, a barra superior, links de navegação e menu móvel não são renderizados nem recebem foco. A ligação de apoio mantém-se no rodapé. Após iniciar/importar, a barra aparece e permite abrir Players e as restantes áreas; reabrir com dados não exige Start novamente. | Automático + visual em desktop, tablet e telemóvel. |
 | AC58 | P0 | Dada uma instalação nova, quando se criam jogadores, semanas, dispensas e ficheiros sem ativar sincronização ou lembretes. | Funciona sem conta nem criação de identidade remota. Não envia nomes, pontos ou motivos; pedidos aos ficheiros da PWA são permitidos. | Fluxo e inspeção de rede. |
 | AC69 | P0 | Dadas várias instalações independentes, quando pessoas novas abrem a PWA e criam/consultam/corrigem/exportam os seus dados, incluindo quando os serviços remotos devolvem erro de quota. | Não existe contador máximo de utilizadores, licença por pessoa, lista de espera ou verificação remota de vagas. O acesso aos ficheiros estáticos e ao fluxo local não depende da API de sincronização/notificações. Os dados de cada instalação permanecem independentes e nenhuma falha de quota remota bloqueia as operações locais. | Automático em contextos independentes, falhas remotas simuladas e revisão da configuração de publicação. |
 | AC64 | P0 | Dada a PWA já carregada, modo local e API de sincronização sem credenciais ou indisponível, quando se regista/corrige uma semana e se exporta ficheiro. | Persiste em IndexedDB sem depender de sessão/cache remota. A falha da API não bloqueia operações locais. Não se exige abertura de raiz sem internet. | Serviços simulados como indisponíveis. |
@@ -184,7 +185,7 @@ RF08/RF18, AC28, AC30–AC32, AC34, AC59–AC61 e AC74 também são P2. Nos cen�
 
 | Área do plano | Cenários principais |
 | --- | --- |
-| RF01/RF11, RN18 — uso local e ausência de teto | AC01, AC58, AC64, AC69 |
+| RF01/RF11, RN18 — uso local e ausência de teto; navegação após iniciar | AC01, AC58, AC64, AC69, AC97 |
 | RF02/RF20, identidade, participações e conferência de nomes; RN13, RN20–RN22 | AC04–AC06, AC25–AC26, AC81–AC87, AC96 |
 | RF03–RF06, pontos/semanas/indicadores | AC02–AC03, AC07–AC19, AC27, AC63, AC67–AC68 |
 | RF13–RF15, dispensas e destaque | AC20–AC24, AC66 |

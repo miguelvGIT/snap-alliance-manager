@@ -4,6 +4,8 @@
 
 ## Verified locally
 
+Current navigation increment: TypeScript/build passed and six focused browser checks passed on compiled local Cloudflare assets at desktop, tablet and mobile widths. The top bar/menu are absent before setup, support remains in the footer, Start/import reveal navigation, Players opens through the menu, and reopening preserves access. Screenshots were inspected at all three widths. The last complete regression results below remain the reference for unchanged domain and feature paths.
+
 | Check | Result |
 | --- | --- |
 | TypeScript build check | Passed |
@@ -29,7 +31,7 @@ The former-player increment passed the complete 72-check browser suite after cor
 
 After the full browser run, the final compact confirmation layout and incomplete-week path passed 24 targeted browser checks across the same three widths. Screenshots were inspected for the alliance warning, archive settings, score information control and highlighted missing fields. Static interface lint reports zero failures and one existing hash-padding warning. Read-only publication checks confirmed the deployed HTML references the tested build and its script returns 200; production push remains unavailable pending the existing authorization.
 
-The specification has 57 P0 scenarios and 23 P1 scenarios: 80 mandatory acceptance scenarios. The automated test totals above are recorded executions, not 80 acceptance approvals. Image OCR/multi-image clipboard intake are P0; assisted capture on compatible PCs is P1. Automatic sync and remote conflicts are P2. The shipped MVP hides the prototype UI, starts no sync engine, and rejects direct sync API calls. A stored credential from the prototype does not trigger requests. Free file transfer stays available. Conditional paid Ko-fi access is planned for a future sync release; no payments are enabled.
+The specification has 58 P0 scenarios and 23 P1 scenarios: 81 mandatory acceptance scenarios. The automated test totals above are recorded executions, not 81 acceptance approvals. Image OCR/multi-image clipboard intake are P0; assisted capture on compatible PCs is P1. Automatic sync and remote conflicts are P2. The shipped MVP hides the prototype UI, starts no sync engine, and rejects direct sync API calls. A stored credential from the prototype does not trigger requests. Free file transfer stays available. Conditional paid Ko-fi access is planned for a future sync release; no payments are enabled.
 
 ### Correction status
 
@@ -43,7 +45,7 @@ The AC43/AC46 corrections passed local regression checks, including reload, serv
 
 ### Acceptance coverage still needed
 
-72 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
+73 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
 
 The following eight mandatory scenarios have no explicit automated-test reference:
 
@@ -173,7 +175,7 @@ Stylized names and ambiguous letters still need manual verification. Four screen
 
 ## Public test deployment
 
-The production environment was first published on 28 October 2026 at https://snap-alliance-manager.snap-alliance-manager.workers.dev and updated on 29 October. Current deployment version: 8cd7c535-a7ee-4a19-bfcb-6c959d90eb7e. Both D1 migrations were applied to a newly created empty database. Local database/origin settings remain unchanged. No billing upgrade or real player import was performed.
+The production environment was first published on 28 October 2026 at https://snap-alliance-manager.snap-alliance-manager.workers.dev and updated on 29 October. Current deployment version: aaabd0fa-78ae-4492-a14d-d433ea31527d. Both D1 migrations were applied to a newly created empty database. Local database/origin settings remain unchanged. No billing upgrade or real player import was performed.
 
 Read-only HTTP verification returned 200 for the application, PWA manifest, OCR worker, OCR language model and public configuration. CSP retains same-origin loading and WebAssembly support. No production test records or push subscriptions were created.
 
@@ -188,3 +190,8 @@ The overview now shows validated current-week totals immediately, with an explan
 The browser journey imports a fictional roster, reads an image, validates without a separate draft save, verifies saved results and current totals, reloads and checks an exported backup. Empty/unassigned paths stay blocked; the review survives cancellation. Date selection is checked across the reset in Asia/Kolkata. No real player data or production test records are used.
 
 The validation correction is deployed at the same public URL. Read-only HTTP verification confirmed the current generated index/asset returned 200. All 51 browser checks passed, then the nine affected validation checks passed again after the confirmation-focus refinement. Production Web Push remains unconfigured; no credential or billing changes were made.
+
+
+## Public source repository
+
+On 29 October 2026 the user requested public source visibility for https://github.com/miguelvGIT/snap-alliance-manager. GitHub required the user to reconfirm access; the browser subsequently showed the repository as Public. A local review checked 208 historical blobs for private/generated paths, known local credentials and common credential markers, without logging credential values. No matches were found. Player tables, images, backups and local service credentials remain excluded from Git; repository visibility does not publish browser-local records.

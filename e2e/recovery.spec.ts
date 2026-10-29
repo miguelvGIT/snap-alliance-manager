@@ -12,6 +12,14 @@ test('AC35 AC36 AC52 AC53 AC80: importação inicial, pesquisa e ligação Ko-fi
   });
   await page.getByRole('button', { name: 'Confirm import' }).click();
   await expect(page.getByRole('heading', { name: 'Test alliance', exact: true })).toBeVisible();
+  await expect(page.getByRole('banner')).toBeVisible();
+  const mobileMenu = page.getByRole('button', { name: 'Open menu', exact: true });
+  if (await mobileMenu.isVisible()) await mobileMenu.click();
+  await expect(
+    page.getByRole('navigation', { name: 'Main navigation', exact: true }),
+  ).toBeVisible();
+  const closeMenu = page.getByRole('button', { name: 'Close menu', exact: true });
+  if (await closeMenu.isVisible()) await closeMenu.click();
   await expect(page.getByRole('link', { name: 'Support the project' })).toHaveAttribute(
     'href',
     'https://ko-fi.com/tequilasunsett',

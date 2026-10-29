@@ -77,6 +77,29 @@ export default function App() {
   ] as const;
   const support =
     (import.meta.env.VITE_SUPPORT_URL as string | undefined) ?? 'https://ko-fi.com/tequilasunsett';
+  const dashboardReady = !!data && !loading && !alliance.storageFailure;
+  const supportAction =
+    support && /^https:\/\//.test(support) ? (
+      <a
+        href={support}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Support the project"
+        className={s.support}
+      >
+        <Heart size={15} />
+        <span>Support the project</span>
+      </a>
+    ) : (
+      <button
+        aria-label="Support the project"
+        className={s.support}
+        onClick={() => alliance.setError('Project support will be available soon.')}
+      >
+        <Heart size={15} />
+        <span>Support the project</span>
+      </button>
+    );
   return (
     <div className={s.app}>
       <a
@@ -89,58 +112,40 @@ export default function App() {
       >
         Skip to content
       </a>
-      <header className={s.header}>
-        <a className={s.brand} href="#overview">
-          <Layers3 size={25} strokeWidth={1.5} />
-          <span>
-            Alliance<small>Marvel Snap</small>
-          </span>
-        </a>
-        <nav aria-label="Main navigation" className={menu ? s.navOpen : s.nav}>
-          {destinations.map(([id, label, Icon]) => (
-            <a
-              href={'#' + id}
-              key={id}
-              aria-current={page === id ? 'page' : undefined}
-              onClick={() => setMenu(false)}
-            >
-              <Icon size={15} />
-              {label}
-            </a>
-          ))}
-        </nav>
-        <div className={s.headerActions}>
-          {support && /^https:\/\//.test(support) ? (
-            <a
-              href={support}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Support the project"
-              className={s.support}
-            >
-              <Heart size={15} />
-              <span>Support the project</span>
-            </a>
-          ) : (
+      {dashboardReady && (
+        <header className={s.header}>
+          <a className={s.brand} href="#overview">
+            <Layers3 size={25} strokeWidth={1.5} />
+            <span>
+              Alliance<small>Marvel Snap</small>
+            </span>
+          </a>
+          <nav aria-label="Main navigation" className={menu ? s.navOpen : s.nav}>
+            {destinations.map(([id, label, Icon]) => (
+              <a
+                href={'#' + id}
+                key={id}
+                aria-current={page === id ? 'page' : undefined}
+                onClick={() => setMenu(false)}
+              >
+                <Icon size={15} />
+                {label}
+              </a>
+            ))}
+          </nav>
+          <div className={s.headerActions}>
+            {supportAction}
             <button
-              aria-label="Support the project"
-              className={s.support}
-              onClick={() => alliance.setError('Project support will be available soon.')}
+              aria-label={menu ? 'Close menu' : 'Open menu'}
+              aria-expanded={menu}
+              className={s.menuButton}
+              onClick={() => setMenu(!menu)}
             >
-              <Heart size={15} />
-              <span>Support the project</span>
+              {menu ? <X size={20} /> : <Menu size={20} />}
             </button>
-          )}
-          <button
-            aria-label={menu ? 'Close menu' : 'Open menu'}
-            aria-expanded={menu}
-            className={s.menuButton}
-            onClick={() => setMenu(!menu)}
-          >
-            {menu ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
-      </header>
+          </div>
+        </header>
+      )}
       <main id="main" tabIndex={-1} className={s.main}>
         {error && (
           <div role="alert">
@@ -381,6 +386,7 @@ export default function App() {
       )}
       <footer className={s.appFooter}>
         <span>Alliance · An independent tool for Marvel Snap alliance managers.</span>
+        {!dashboardReady && supportAction}
         <span>Private player history.</span>
       </footer>
     </div>

@@ -28,6 +28,8 @@ English-only application copy; localization can follow later. Onboarding explain
 
 Support URL confirmed by the user: https://ko-fi.com/tequilasunsett. "Alliance" is a working product name.
 
+The top navigation is hidden until a dashboard is set up, a backup is imported, or existing local data loads. The support link remains in the footer before setup. The source repository is public by the user's request; alliance records remain private on each device.
+
 ## Alliance changes and review
 
 One alliance is active per browser. Settings can archive or delete it before changing to an empty dashboard, with warnings and explicit confirmation. Local archives retain full identities and history and can be exported/restored/deleted. Switching affects all tabs in that browser. Device reminders remain independent.
