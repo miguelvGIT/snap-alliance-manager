@@ -13,6 +13,7 @@
 - Keep real data, backups, credentials and secrets out of Git/logs. `.dev.vars` is ignored.
 - Tests use localhost, fictional data and local D1, never production.
 - Player IDs are internal. Never infer a rename, assignment or departure automatically.
+- Players separates the active roster and Former players. New departures require a reason stored per membership period; keep scores, identity and earlier reasons on rejoining. Legacy backups without departure reasons remain valid and explicitly show the reason as unrecorded.
 - Group repeated image observations into one review row per exact name, preserving originals; never merge similar names or player identities. Conflicting totals require an explicit choice. The game's fixed four-column layout is automatic; keep zoom/pan available for captured and uploaded images.
 - Automatic sync and remote conflicts are P2; keep the prototype disabled in the shipped MVP. If future sync incurs service/call costs, require server-verified paid access through Ko-fi. Local use and file transfer stay free.
 - Weekly intake uses local image OCR: multi-image selection and clipboard images are P0; authorized assisted screen capture on compatible PCs is P1. No bulk text-paste entry. Individual review corrections remain available. Never upload images or use paid OCR APIs. Saved-video import, full offline support and FUT01–FUT03 remain future scope.

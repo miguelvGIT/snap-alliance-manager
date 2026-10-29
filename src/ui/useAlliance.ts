@@ -103,7 +103,7 @@ export function useAlliance() {
     } catch (e) {
       if (options?.publishAfterSave) {
         setError(
-          'Could not save this validation. Your score review remains open; retry when storage is available.',
+          'Could not save these changes. Your current form remains open; retry when storage is available.',
         );
         throw e;
       }

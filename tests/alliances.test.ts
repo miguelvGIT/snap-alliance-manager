@@ -8,7 +8,7 @@ import {
 } from '../src/data/alliances';
 import { fixture } from './fixtures';
 import { newDataset } from '../src/domain/model';
-import { renamePlayer } from '../src/domain/actions';
+import { renamePlayer, recordDeparture } from '../src/domain/actions';
 const fresh = (name = 'Second alliance', disposition: 'archive' | 'delete' = 'archive') => ({
   kind: 'new' as const,
   name,
@@ -21,6 +21,27 @@ beforeEach(async () => {
   await db.entries.clear();
   await db.operations.clear();
   await db.conflicts.clear();
+});
+it('AC92 AC96: alliance archive and restore retain player departure reasons', async () => {
+  const original = fixture();
+  const departed = recordDeparture(
+    original,
+    original.players[0].id,
+    '2026-10-28T12:00:00Z',
+    'Agreed departure',
+  );
+  await saveDataset(departed, null);
+  const next = await transitionAlliance(departed, fresh());
+  const [archive] = await listAllianceArchives();
+  expect(archive.dataset).toEqual(departed);
+  const restored = await transitionAlliance(next, {
+    kind: 'restore',
+    archiveId: archive.id,
+    expectedArchive: archive,
+    disposition: 'delete',
+  });
+  expect(restored.players[0].memberships[0].departureReason).toBe('Agreed departure');
+  expect(restored.weeks).toEqual(original.weeks);
 });
 it('AC91 AC92: archives the full alliance while starting with new IDs and no mixed records', async () => {
   const first = fixture();

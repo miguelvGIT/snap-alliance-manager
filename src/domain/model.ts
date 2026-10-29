@@ -2,7 +2,13 @@ import { z } from 'zod';
 const stamp = z.string().datetime();
 const id = z.string().min(1).max(128);
 const points = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
-export const membershipSchema = z.object({ id, joinedAt: stamp, leftAt: stamp.nullable() });
+export const membershipSchema = z.object({
+  id,
+  joinedAt: stamp,
+  leftAt: stamp.nullable(),
+  // Optional for backups created before departure reasons were recorded.
+  departureReason: z.string().trim().min(1).max(2000).optional(),
+});
 export const playerSchema = z.object({
   id,
   name: z.string().trim().min(1).max(150),

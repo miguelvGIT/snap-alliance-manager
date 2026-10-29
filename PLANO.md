@@ -36,7 +36,7 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 | ID | Requisito |
 | --- | --- |
 | RF01 | Registar uma aliança já existente no jogo e começar sem conta, com dados persistidos no dispositivo. Uma aliança ativa de cada vez, com mudança e arquivos locais em RF24. |
-| RF02 | Registar jogadores com ID interno criado pela aplicação, nome atual, nomes anteriores, contacto social opcional e participações com entrada/saída. Não depender de um identificador do Marvel Snap. |
+| RF02 | Registar jogadores com ID interno criado pela aplicação, nome atual, nomes anteriores, contacto social opcional e participações com entrada/saída. Na aba Players, separar o plantel ativo de Former players, mostrando data e motivo da saída. Não depender de um identificador do Marvel Snap. |
 | RF03 | Definir mínimo individual e meta da aliança, preservando os valores históricos por semana. |
 | RF04 | Ler localmente uma ou várias imagens selecionadas ou coladas da área de transferência, sem exigir ficheiros guardados para colagem. Propor nomes e pontos numa grelha de revisão, conservando as imagens como referência com zoom e deslocamento durante essa sessão. Sem entrada em massa por texto; permitir correções individuais antes de guardar. |
 | RF05 | Registar a data/hora de recolha automaticamente quando determinável ou manualmente; conservar separadamente a introdução/importação. |
@@ -90,7 +90,7 @@ Estas regras concretizam o comportamento. As escolhas de cálculo e apresentaç�
 | RN02 | Uma mudança de nome confirmada manualmente conserva o ID interno, contacto, participações e todo o histórico. Guardar o nome anterior e manter o nome observado em cada recolha, sem reescrever os registos antigos. Nomes iguais ou semelhantes não são prova de identidade. |
 | RN03 | Existe um resultado lógico por aliança/jogador/semana, com revisões preservadas quando necessário. |
 | RN04 | Pontos e mínimos são inteiros não negativos. Zero é válido; ausência de registo é diferente. Mínimo zero desativa incumprimentos nessa semana. |
-| RN13 | Arquivar quem saiu não apaga o passado nem cria incumprimentos depois da saída. Dados desconhecidos na semana de saída exigem revisão, sem conversão para zero. |
+| RN13 | Registar a saída em Players exige data/hora e motivo preenchido, sem julgar a suficiência do texto. Confirmar move o jogador para Former players, preservando ID, contacto, nomes, resultados e indicadores históricos. Mostrar data e motivo da última saída nessa secção e os motivos de cada participação no perfil. Cancelar ou falhar não muda o plantel. Regressar abre nova participação no mesmo jogador, sem apagar motivos anteriores. Não criar incumprimentos depois da saída; dados desconhecidos nessa semana exigem revisão, sem conversão para zero. Backups antigos sem motivo continuam válidos e mostram «No departure reason recorded»; não inventar motivos. |
 | RN15 | Reimportar linhas ou ficheiros não soma pontos nem duplica identidades/resultados. Divergências exigem revisão. |
 | RN16 | O histórico semanal pode incluir mais de 30 pessoas diferentes por rotação. Não truncar o histórico ao número de lugares simultâneos do jogo. |
 | RN17 | Os indicadores medem contribuição registada, não tempo de jogo, presença diária ou intenção. |
@@ -285,7 +285,7 @@ Servir assets diretamente, sem executar o Worker em todas as aberturas e sem con
 | --- | --- |
 | Espaço local e aliança | IDs, nome/tag, jogo, mínimo por defeito, meta e preferências. |
 | Jogador e nomes | UUID criado pela aplicação, nome atual, nomes anteriores e contactos opcionais; sem ID de conta Marvel Snap. |
-| Participação | Jogador/aliança, entrada e saída; permite reentrada. |
+| Participação | Jogador/aliança, entrada, saída e motivo da saída por participação; permite reentrada. O motivo é opcional no formato para ler backups anteriores, mas obrigatório ao registar novas saídas. |
 | Semana | ID estável, limites UTC, mínimo/meta, estado, incompletude e revisão. |
 | Recolha | Origem, momento/intervalo observado, indicação automática/manual/desconhecida, momento de introdução, referência de comparação e indicação de lista completa/parcial. |
 | Linha recolhida e associação | Nome e pontos observados, recolha, estado pendente/confirmado/excluído da avaliação e jogador interno quando confirmado. Conservar decisões, nomes anteriores e revisões. |

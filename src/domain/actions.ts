@@ -69,6 +69,31 @@ export function addPlayer(
     });
   });
 }
+export function recordDeparture(data: Dataset, playerId: string, at: string, reason: string) {
+  if (!reason.trim()) throw new Error('Enter a reason for leaving.');
+  if (!Number.isFinite(Date.parse(at))) throw new Error('Enter a valid departure date and time.');
+  return change(data, 'player/' + playerId, 'Leaving confirmed: ' + reason.trim(), (draft) => {
+    const player = draft.players.find((p) => p.id === playerId);
+    const membership = player?.memberships.find((m) => !m.leftAt);
+    if (!membership) throw new Error('This player is no longer in the active roster.');
+    if (Date.parse(at) < Date.parse(membership.joinedAt))
+      throw new Error('The leaving date cannot be before the joining date.');
+    membership.leftAt = new Date(at).toISOString();
+    membership.departureReason = reason.trim();
+  });
+}
+export function recordRejoining(data: Dataset, playerId: string, at: string) {
+  if (!Number.isFinite(Date.parse(at))) throw new Error('Enter a valid joining date and time.');
+  return change(data, 'player/' + playerId, 'Rejoining confirmed', (draft) => {
+    const player = draft.players.find((p) => p.id === playerId);
+    if (!player) throw new Error('This player is no longer available.');
+    if (player.memberships.some((m) => !m.leftAt))
+      throw new Error('This player is already in the active roster.');
+    if (player.memberships.some((m) => m.leftAt && Date.parse(at) < Date.parse(m.leftAt)))
+      throw new Error('The rejoining date cannot be before the last departure.');
+    player.memberships.push({ id: uuid(), joinedAt: new Date(at).toISOString(), leftAt: null });
+  });
+}
 export function renamePlayer(data: Dataset, id: string, name: string, social?: string) {
   return change(data, 'player/' + id, 'Name or contact updated manually', (draft) => {
     const player = draft.players.find((p) => p.id === id)!;

@@ -850,6 +850,20 @@ input[aria-invalid='true'] {
   font-size: 12px;
   flex-shrink: 0;
 }
+.formerPlayerRow {
+  align-items: flex-start;
+}
+.formerPlayerRow > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+.departureReason {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  color: var(--muted);
+}
 .rowEnd {
   display: flex;
   align-items: center;

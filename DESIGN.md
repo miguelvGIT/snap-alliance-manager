@@ -12,6 +12,8 @@ The onboarding headline is "Your alliance, week by week." Its form heading is "S
 
 New installations are empty. Fictional fixtures are used only in isolated tests.
 
+Players separates Alliance roster from Former players. Each former-player row shows name, contact, departure date and reason with wrapping text. The profile keeps every membership period and its departure reason. Remove from roster asks for a date and required reason before confirmation; rejoining preserves the same identity and earlier reasons. Search covers both sections. Legacy departures without reasons have an explicit fallback label.
+
 Minimum changes belong in Settings. The weekly editor displays the applied minimum without an edit action. Settings separates the default for new weeks from a collapsed saved-week correction form with a required reason.
 
 Validation includes the current unsaved review, shows actionable blockers for unassigned/empty results, and focuses a saved-score confirmation with an overview link after success. Current-week validated totals appear immediately; historical metrics keep their end-of-week rules. The date shortcut is labelled "Find week by date", uses local date/time and is distinguished from capture time. Week changes protect unsaved images/reviews; saved collections can be reopened individually.

@@ -14,6 +14,8 @@ Confirmed in PLANO.md: React, TypeScript, Vite, CSS Modules, Dexie, Zod, Cloudfl
 
 Marvel Snap alliance managers preserve weekly contributions and assess minimums. History survives manually confirmed name changes.
 
+Players has a separate Former players section with departure dates and reasons. New departures require a reason and preserve the player's identity, scores and prior membership records. Rejoining opens another membership period; old departure reasons remain available. Legacy records without reasons still load.
+
 ## Constraints
 
 No account for local use. No mandatory costs. Private tables and full file transfer. Automatic sync is P2 and disabled in the shipped MVP. File transfer stays free. Future sync with service/call costs requires server-verified paid Ko-fi access. Reminders remain an independent MVP feature. Dates are local, player identity is internal, and missing values differ from zero. Full offline support is out of scope.
