@@ -16,6 +16,7 @@ export function Modal({
   const close = useRef(onClose);
   close.current = onClose;
   useEffect(() => {
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     ref.current?.showModal();
     const node = ref.current;
     const cancel = (event: Event) => {
@@ -26,6 +27,10 @@ export function Modal({
     return () => {
       node?.removeEventListener('cancel', cancel);
       node?.close();
+      queueMicrotask(() => {
+        if (trigger?.isConnected && document.activeElement === document.body)
+          trigger.focus({ preventScroll: true });
+      });
     };
   }, []);
   return (

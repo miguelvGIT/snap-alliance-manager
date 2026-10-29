@@ -7,6 +7,8 @@
 - Stack: React/TypeScript/Vite/CSS Modules, Dexie/IndexedDB, Zod, Cloudflare Workers/D1.
 - Commands: `pnpm dev`, `pnpm build`, `pnpm test`, `pnpm test:e2e`, `pnpm db:migrate`, `pnpm dev:api`.
 - Commit each meaningful project increment with a short, plain message explaining what changed. Include only the work for that increment and complete the relevant checks before committing.
+- One active alliance per browser. Archive/delete/restore only through confirmed atomic transitions; preserve archive IDs/history, isolate all tabs and keep device reminders separate. Backups contain one alliance each; archives export separately.
+- Validation changes status only after final successful storage. Highlight and focus missing fields. Revision/score-correction notes are optional; exemption and historical-minimum reasons stay required. Show numbered images and a score information icon instead of filenames as primary labels.
 - Local use requires no account. Send tables only after explicit sync activation. No paid APIs or automatic billing.
 - Keep real data, backups, credentials and secrets out of Git/logs. `.dev.vars` is ignored.
 - Tests use localhost, fictional data and local D1, never production.

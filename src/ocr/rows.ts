@@ -150,7 +150,25 @@ export function imageCollection(images: ImageInput[], rows: Line[]): Collection 
         ? 'automatic'
         : 'unknown',
     complete: false,
-    lines: mergeImageLines(rows),
+    lines: mergeImageLines(
+      rows.map((row) => ({
+        ...row,
+        sourceRows:
+          row.sourceRows ??
+          (row.observationId
+            ? [
+                {
+                  id: row.id,
+                  observationId: row.observationId,
+                  name: row.name,
+                  points: row.points,
+                  rawPoints: row.rawPoints,
+                  ocrConfidence: row.ocrConfidence,
+                },
+              ]
+            : undefined),
+      })),
+    ),
     observations: images.map(({ id, name, source, observedAt, timeSource }) => ({
       id,
       name,

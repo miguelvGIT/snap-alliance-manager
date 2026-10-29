@@ -313,12 +313,12 @@ export default function ImageIntake({
                   className={s.imagePreviewButton}
                   aria-label={'View image ' + (index + 1)}
                   disabled={busy || capturing}
-                  onClick={() => setPreview(image)}
+                  onClick={() => setPreview({ ...image, name: `Image ${index + 1}` })}
                 >
                   <img src={image.url} alt={'Screenshot ' + (index + 1)} />
                   <span>View and zoom</span>
                 </button>
-                <figcaption>{image.name}</figcaption>
+                <figcaption>{`Image ${index + 1}`}</figcaption>
                 <Field
                   label={'Capture time · image ' + (index + 1)}
                   hint={

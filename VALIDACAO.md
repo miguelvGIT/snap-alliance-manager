@@ -1,6 +1,6 @@
 # Validation and release status
 
-28 October 2026. Public test version: https://snap-alliance-manager.snap-alliance-manager.workers.dev. The full MVP has not been signed off while mandatory device, Web Push and release evidence remains open.
+29 October 2026. Public test version: https://snap-alliance-manager.snap-alliance-manager.workers.dev. The full MVP has not been signed off while mandatory device, Web Push and release evidence remains open.
 
 ## Verified locally
 
@@ -8,8 +8,8 @@
 | --- | --- |
 | TypeScript build check | Passed |
 | Production frontend/PWA build | Passed |
-| Vitest | 82 tests passed: 34 domain, 3 validation, 6 storage, 4 retained P2 sync-engine, 13 reminder-queue, 10 API and 12 OCR/cancellation/column/grouping checks. |
-| Playwright | 51 checks passed on compiled local Cloudflare assets at 1440×900, 768×1024 and 390×844; three deferred P2 sync skips. Validation checks include saving the current review, reload/backup, current-week totals, empty/pending blockers, local date selection and protection of unsaved work. OCR uses the real packaged engine; notification state and screen sharing are simulated. |
+| Vitest | 92 tests passed: 34 domain, 4 validation, 6 storage, 9 alliance archive/transition, 4 retained P2 sync-engine, 13 reminder-queue, 10 API and 12 OCR/cancellation/column/grouping checks. |
+| Playwright | 66 checks passed on compiled local Cloudflare assets at 1440×900, 768×1024 and 390×844; three deferred P2 sync skips. Checks cover archive/delete/restore and tab isolation, canceled validation, failed local writes, optional score notes, missing-field focus, image information controls, reload/backup, current-week totals and date selection. OCR uses the real packaged engine; notification state and screen sharing are simulated. |
 | Deferred P2 browser tests | Three sync-test skips; automatic sync is disabled in the shipped MVP |
 | Cloudflare publication | Production Worker/static assets published; D1 schema prepared in a new empty database. HTTPS app, manifest, OCR worker/model and public configuration returned 200. No player data was uploaded. |
 | Visual inspection | 0 failures; one small-text warning for secondary copy and metadata |
@@ -25,7 +25,9 @@ Earlier prototype evidence: the two-context test used approved invitations and i
 
 ## P0/P1 audit
 
-The specification has 51 P0 scenarios and 23 P1 scenarios: 74 mandatory acceptance scenarios. The automated test totals above are recorded executions, not 74 acceptance approvals. Image OCR/multi-image clipboard intake are P0; assisted capture on compatible PCs is P1. Automatic sync and remote conflicts are P2. The shipped MVP hides the prototype UI, starts no sync engine, and rejects direct sync API calls. A stored credential from the prototype does not trigger requests. Free file transfer stays available. Conditional paid Ko-fi access is planned for a future sync release; no payments are enabled.
+After the full browser run, the final compact confirmation layout and incomplete-week path passed 24 targeted browser checks across the same three widths. Screenshots were inspected for the alliance warning, archive settings, score information control and highlighted missing fields. Static interface lint reports zero failures and one existing hash-padding warning. Read-only publication checks confirmed the deployed HTML references the tested build and its script returns 200; production push remains unavailable pending the existing authorization.
+
+The specification has 56 P0 scenarios and 23 P1 scenarios: 79 mandatory acceptance scenarios. The automated test totals above are recorded executions, not 79 acceptance approvals. Image OCR/multi-image clipboard intake are P0; assisted capture on compatible PCs is P1. Automatic sync and remote conflicts are P2. The shipped MVP hides the prototype UI, starts no sync engine, and rejects direct sync API calls. A stored credential from the prototype does not trigger requests. Free file transfer stays available. Conditional paid Ko-fi access is planned for a future sync release; no payments are enabled.
 
 ### Correction status
 
@@ -39,7 +41,7 @@ The AC43/AC46 corrections passed local regression checks, including reload, serv
 
 ### Acceptance coverage still needed
 
-66 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
+71 mandatory IDs appear in automated tests. Some assertions cover only part of their named scenario. A test title is not proof that every condition in that scenario was checked.
 
 The following eight mandatory scenarios have no explicit automated-test reference:
 
@@ -50,7 +52,7 @@ AC54 and AC47 require real devices. The absence of an automated reference does n
 
 Examples of partial coverage that need stronger checks:
 
-- AC19 now checks minimum corrections through Settings, required reasons, before/after values in the backup, unchanged defaults/other weeks, recalculated misses and preserved averages. The full points-correction revision flow still needs explicit coverage.
+- AC19 now checks minimum corrections through Settings, required reasons, before/after values in the backup, unchanged defaults/other weeks, recalculated misses and preserved averages. Point corrections now have optional notes and preserve before/after values; the browser flow verifies the new displayed value.
 - AC38 currently checks preservation of an incompatible stored format, not a running-app update with retained data and pending operations.
 - AC31 is now P2: the retained prototype checks server-side conflict retention, not the complete two-session resolution flow.
 - AC40 checks invalid calendar/queue lead times and a browser change to 60 minutes. The complete preset/invalid-field reminder-settings flow still needs explicit coverage.
@@ -88,7 +90,9 @@ The next MVP work is broader real-image OCR validation, the remaining local acce
 - Historical minimums, zero/missing distinction, partial-entry exemptions and manually justified exemptions.
 - Eligible lifetime averages and missed-minimum counts; eight recent weeks on the overview.
 - Collection times distinct from entry/import times, with revisions.
-- Complete versioned backup/restore, preview and atomic replacement.
+- Complete versioned backup/restore, preview and atomic replacement. One alliance per backup; archives export separately.
+- Confirmed alliance switching with local archive/delete choices, restore/export/delete archive actions, atomic quota recovery and cross-tab scope isolation.
+- Validation publishes only after its final successful save. Canceled or failed attempts preserve the draft; revision/score-correction notes are optional. Missing fields are highlighted, focused and scrolled into view. Source readings use an information icon and numbered images.
 - Retained P2 sync prototype with invitations, recovery and conflicts. It is disabled in the MVP UI/API and creates no automatic sync traffic.
 - A replaceable sync transport, ordered outbox, delta transfer and bounded retries.
 - Calendar file generation, optional push registration, weekly scheduling and expiring notifications. Existing schedule changes/removals use a durable device-only queue; permission state refreshes on return.
@@ -167,7 +171,7 @@ Stylized names and ambiguous letters still need manual verification. Four screen
 
 ## Public test deployment
 
-The production environment was published on 28 October 2026 at https://snap-alliance-manager.snap-alliance-manager.workers.dev. Current deployment version: 4775bcbc-dc22-43cd-97a0-0bf478a239b4. Both D1 migrations were applied to a newly created empty database. Local database/origin settings remain unchanged. No billing upgrade or real player import was performed.
+The production environment was first published on 28 October 2026 at https://snap-alliance-manager.snap-alliance-manager.workers.dev and updated on 29 October. Current deployment version: 06b83843-46b3-4e23-a260-f91dca79763a. Both D1 migrations were applied to a newly created empty database. Local database/origin settings remain unchanged. No billing upgrade or real player import was performed.
 
 Read-only HTTP verification returned 200 for the application, PWA manifest, OCR worker, OCR language model and public configuration. CSP retains same-origin loading and WebAssembly support. No production test records or push subscriptions were created.
 

@@ -26,6 +26,12 @@ English-only application copy; localization can follow later. Onboarding explain
 
 Support URL confirmed by the user: https://ko-fi.com/tequilasunsett. "Alliance" is a working product name.
 
+## Alliance changes and review
+
+One alliance is active per browser. Settings can archive or delete it before changing to an empty dashboard, with warnings and explicit confirmation. Local archives retain full identities and history and can be exported/restored/deleted. Switching affects all tabs in that browser. Device reminders remain independent.
+
+Validation changes state only after its final successful save. Missing fields are highlighted and focused in place. Revision and score-correction notes are optional; exemption and minimum-change reasons remain required. Source readings use an information icon and simple image numbers.
+
 ## Evidence and open checks
 
 PLANO.md and TESTES_ACEITACAO.md contain confirmed behavior. Four supplied real screenshots have been checked locally as two separate weekly batches. The broader OCR corpus and native-device/calendar checks remain open. VALIDACAO.md records executed checks and release blockers.

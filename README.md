@@ -38,11 +38,12 @@ Tests use fictional data and isolated contexts. No production account or databas
 Enter your existing alliance's name and minimum/target, then select **Start**. You can also import a complete backup.
 
 - **Record scores:** add multiple screenshots or paste clipboard images without saving a file. Read them locally, check total points against the images, and confirm assignments. Compatible desktop browsers can capture visible game rows while you scroll the authorized window. Unknown and missing names are highlighted separately; you confirm name changes and new players.
-- **Validate a week:** validation saves the current reviewed collection and the week together. Unassigned rows and empty weeks are blocked with instructions. Save a draft to finish assignments later. Success shows the saved-score count and a link to the overview; current-week totals appear immediately while historical averages/misses wait until the week ends.
+- **Validate a week:** missing or unresolved fields are highlighted and focus moves to the first one. A week becomes validated only after the final confirmation saves successfully; canceling or a failed save keeps the review open. Weeks with known scores can be explicitly confirmed as incomplete. Revision and score-correction notes are optional; exemption and historical-minimum reasons are still required. Success shows the saved-score count and an overview link; current-week totals appear immediately while historical averages/misses wait until the week ends.
 - **Find week by date:** an optional shortcut using local date and time to select the week. It does not set the capture time. Changing weeks asks before discarding unsaved images/reviews.
 - **Overview:** averages and missed minimums use all eligible history; the table shows eight recent weeks. A missing score stays distinct from zero.
 - **History:** review weeks, collection times and revision reasons.
 - **Settings:** change defaults, export/import and choose reminders.
+- **Change alliance:** in Settings, archive the current alliance (the default) or delete its data before starting an empty dashboard. A warning and confirmation are required. This changes every tab in the same browser; save open reviews first. Archived alliances can be exported, restored or deleted with their own confirmations. Device reminders stay unchanged. Archives are browser-local and disappear if browser storage is cleared; export each separately to keep an external copy. One alliance is active at a time.
 - **Minimums:** Settings holds both the default for new weeks and a separate saved-week correction with a required reason. The weekly editor shows the applied minimum.
 - **Support the project:** opens https://ko-fi.com/tequilasunsett without player data.
 
@@ -55,6 +56,8 @@ PNG, JPEG and WebP are supported, up to 20 images per batch and 20 MB per image.
 The OCR worker, WebAssembly engine and English model are copied from locked dependencies by the dev/build/browser-test scripts into ignored `public/ocr/`. They load from this app's origin on first use; images and recognized names/scores are never sent to an OCR service. The reader assumes the game's Player / Cube / Bounty / Total layout and detects the columns automatically. Contrast preparation removes colored role-icon noise; separate numeric reads preserve zero scores. Four real screenshots have been checked locally; stylized names still need review and the broader corpus/device checks remain open.
 
 Uploads and pasted images start with an unknown capture time. Set it if known; live frames record their actual capture time. Repeated names appear once per collection, retaining all original source rows. Overlaps are never summed; different totals require an explicit choice or correction. Similar names are not merged. Open any image or review reference to zoom, view actual size or pan. Images remain in memory while the weekly screen is open; backups contain structured proposals and source/time metadata, not image files.
+
+Score details open through the information icon to the right of each reviewed score. Images use simple labels such as **Image 1** and **Image 2**, including the viewer and reference list. Original filenames remain in structured metadata. The standard backup exports the current alliance; each archived alliance has a separate **Export archive** action using the same complete format.
 
 ## Reminders
 

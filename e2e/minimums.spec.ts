@@ -59,7 +59,7 @@ test('AC18 AC19: minimum changes live in Settings and preserve separate defaults
   });
 
   const pendingDownload = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export all data', exact: true }).click();
+  await page.getByRole('button', { name: 'Export current alliance', exact: true }).click();
   const download = await pendingDownload;
   const backup = readBackup(await readFile((await download.path())!, 'utf8')).dataset;
   expect(backup.alliance.minimum).toBe(3000);

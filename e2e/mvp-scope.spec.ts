@@ -40,7 +40,7 @@ test('AC58 AC69: file transfer stays free and automatic sync is absent from the 
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Linked devices' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Enable sync', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Export all data', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Export current alliance', exact: true })).toBeVisible();
   await page.clock.runFor(65000);
   expect(calls).toEqual([]);
 });

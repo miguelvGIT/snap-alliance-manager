@@ -31,3 +31,20 @@ it('AC07 AC85: a failed validation of an unsaved review does not validate an old
   expect(data.weeks[0].collections).toHaveLength(0);
   expect(data.weeks[0].status).toBe('draft');
 });
+it('AC19 AC94: revising a validated week allows an empty note and preserves the previous values', () => {
+  let data = ensureWeek(addPlayer(newDataset('Fictional'), 'Alpha', '', at), at);
+  const c = makeCollection('Alpha;1000', null, true);
+  c.lines[0].playerId = data.players[0].id;
+  c.lines[0].state = 'confirmed';
+  data = validateWeek(saveCollection(data, at, c), at, false);
+  const revised = structuredClone(c);
+  revised.lines[0].points = 3100;
+  const next = saveCollection(data, at, revised);
+  expect(next.weeks[0].status).toBe('draft');
+  expect(data.weeks[0].status).toBe('validated');
+  const revision = next.revisions.at(-1)!;
+  expect(revision.reason).toBe('Collection reviewed manually');
+  expect(JSON.parse(revision.before).results[data.players[0].id].points).toBe(1000);
+  expect(JSON.parse(revision.after).results[data.players[0].id].points).toBe(3100);
+  expect(validateWeek(next, at, false).weeks[0].status).toBe('validated');
+});

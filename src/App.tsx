@@ -55,6 +55,9 @@ export default function App() {
     return () => window.removeEventListener('hashchange', update);
   }, []);
   const [initialImport, setInitialImport] = useState<ReturnType<typeof readBackup> | null>(null);
+  useEffect(() => {
+    setInitialImport(null);
+  }, [data?.id, data?.alliance.id]);
   const rawPage = route.split('?')[0];
   const legacyRoutes: Record<string, string> = {
     inicio: 'overview',
@@ -145,6 +148,7 @@ export default function App() {
           </div>
         )}
         <Suspense
+          key={data ? data.alliance.id + ':' + data.id : 'onboarding'}
           fallback={
             <div className={s.loading}>
               <p>Opening page…</p>
@@ -286,6 +290,7 @@ export default function App() {
               commit={commit}
               reload={reload}
               engine={alliance.engine.current}
+              switchAlliance={alliance.switchAlliance}
             />
           ) : page === 'history' ? (
             <>

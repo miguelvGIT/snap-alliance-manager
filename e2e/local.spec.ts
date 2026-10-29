@@ -85,7 +85,7 @@ test('AC35 AC70 AC76: exportação local e calendário sem API', async ({ page }
   await importFixture(page);
   await page.goto('/#settings');
   const downloadPromise = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export all data', exact: true }).click();
+  await page.getByRole('button', { name: 'Export current alliance', exact: true }).click();
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/\.json$/);
   const calendarPromise = page.waitForEvent('download');

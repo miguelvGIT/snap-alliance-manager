@@ -21,7 +21,8 @@ import {
   type Conflict,
 } from '../data/store';
 import { api, enableSync, joinSnapshot, resolveConflict, type SyncEngine } from '../sync/client';
-import type { Commit } from './useAlliance';
+import type { Commit, SwitchAlliance } from './useAlliance';
+import AllianceManager from './AllianceManager';
 import { Modal, Field, Notice, number } from './Modal';
 import s from './ui.module.css';
 import { SYNC_PREVIEW } from '../features';
@@ -46,11 +47,13 @@ export default function Settings({
   commit,
   reload,
   engine,
+  switchAlliance,
 }: {
   data: Dataset;
   commit: Commit;
   reload: () => Promise<void>;
   engine: SyncEngine | null;
+  switchAlliance: SwitchAlliance;
 }) {
   const [minimum, setMinimum] = useState(String(data.alliance.minimum)),
     [goal, setGoal] = useState(String(data.alliance.goal)),
@@ -308,11 +311,13 @@ export default function Settings({
           )}
         </div>
       </section>
+      <AllianceManager data={data} switchAlliance={switchAlliance} />
       <section className={s.settingsSection}>
         <div>
           <h2>Backup and transfer</h2>
           <p>
-            Save all your data to a file or transfer it to another device. Files are read locally.
+            Save the current alliance to a file or transfer it to another device. Export archives
+            separately in Archived alliances. Files are read locally.
           </p>
           <p>A backup is not a permanent link between devices.</p>
         </div>
@@ -330,7 +335,7 @@ export default function Settings({
                 })
               }
             >
-              <Download size={16} /> Export all data
+              <Download size={16} /> Export current alliance
             </button>
             <label className={s.fileButton}>
               <Upload size={16} /> Import file
@@ -918,8 +923,8 @@ export default function Settings({
           </p>
           <p>Exported: {dateTime(preview.exportedAt)}</p>
           <Notice tone="warning">
-            This replaces the data on this device. Export your current copy first. Sync will be
-            disabled.
+            This replaces the current alliance on this device. Archived alliances are kept. Export
+            your current copy first. Sync will be disabled.
           </Notice>
           <footer>
             <button onClick={() => downloadText(exportBackup(data), 'alliance-before-import.json')}>

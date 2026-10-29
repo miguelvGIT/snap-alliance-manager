@@ -182,8 +182,6 @@ export function saveCollection(
             );
           seen.set(line.playerId, line.points);
         }
-      if (week.status === 'validated' && !options.reason?.trim())
-        throw new Error('Enter a reason for revising this validated week.');
       const index = week.collections.findIndex((c) => c.id === collection.id);
       if (index < 0) week.collections.push(collection);
       else week.collections[index] = collection;

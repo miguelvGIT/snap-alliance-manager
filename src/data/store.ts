@@ -72,9 +72,13 @@ export async function saveDataset(data: Dataset, previous: Dataset | null) {
       throw new Error(
         'Data already exists on this device. Reopen the app or confirm a backup import.',
       );
-    if (previous && stored && canonical(stored) !== canonical(previous))
+    if (previous && (!stored || canonical(stored) !== canonical(previous)))
       throw new Error(
         'Data changed in another window. Export your pending changes and reopen the app before continuing.',
+      );
+    if (previous && previous.alliance.id !== data.alliance.id)
+      throw new Error(
+        'Use Change alliance or a confirmed backup import to replace the active alliance.',
       );
     const credentials = await readLocal<SyncCredentials>('sync');
     const heads = (await readLocal<Record<string, string>>('heads')) ?? {};

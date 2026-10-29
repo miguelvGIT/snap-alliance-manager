@@ -4,6 +4,7 @@ import { db, readDataset, saveDataset } from '../data/store';
 import { SyncEngine } from '../sync/client';
 import { SYNC_PREVIEW } from '../features';
 import { reminderQueue } from '../reminders/client';
+import { transitionAlliance, type AllianceTransition } from '../data/alliances';
 export function useAlliance() {
   const [data, setData] = useState<Dataset | null>(null),
     [loading, setLoading] = useState(true),
@@ -14,15 +15,17 @@ export function useAlliance() {
   const current = useRef<Dataset | null>(null);
   const channel = useRef<BroadcastChannel | null>(null);
   const engine = useRef<SyncEngine | null>(null);
+  const scopeVersion = useRef(0);
   const update = (next: Dataset | null) => {
     current.current = next;
     setData(next);
   };
   useEffect(() => {
     let mounted = true;
+    const initialScope = scopeVersion.current;
     readDataset()
       .then((value) => {
-        if (mounted) update(value);
+        if (mounted && scopeVersion.current === initialScope) update(value);
       })
       .catch(() => {
         setStorageFailure(true);
@@ -42,15 +45,31 @@ export function useAlliance() {
     sync?.start();
     const broadcast = new BroadcastChannel('alliance-data');
     channel.current = broadcast;
-    reminderQueue.start((next) => {
+    reminderQueue.start(() => {
       if (!mounted) return;
-      if (!unsaved.current) update(next);
+      const version = scopeVersion.current;
+      if (!unsaved.current)
+        void readDataset()
+          .then((next) => {
+            if (mounted && version === scopeVersion.current && !unsaved.current) update(next);
+          })
+          .catch(() => {});
       broadcast.postMessage('changed');
     });
-    broadcast.onmessage = () => {
+    broadcast.onmessage = (event) => {
+      if (event.data?.type === 'alliance-switched') {
+        scopeVersion.current++;
+        unsaved.current = false;
+        engine.current?.stop();
+        setError('');
+        setSyncStatus('Saved on this device');
+      }
+      const version = scopeVersion.current;
       if (!unsaved.current)
         readDataset()
-          .then(update)
+          .then((next) => {
+            if (mounted && version === scopeVersion.current && !unsaved.current) update(next);
+          })
           .catch(() => {});
     };
     const protect = (event: BeforeUnloadEvent) => {
@@ -68,17 +87,26 @@ export function useAlliance() {
       window.removeEventListener('beforeunload', protect);
     };
   }, []);
-  async function commit(next: Dataset) {
+  async function commit(next: Dataset, options?: { publishAfterSave?: boolean }) {
     const previous = current.current;
-    update(next);
+    if (previous && next.alliance.id !== previous.alliance.id)
+      throw new Error('The active alliance changed. Reopen this screen before saving.');
+    if (!options?.publishAfterSave) update(next);
     try {
       await saveDataset(next, previous);
+      if (options?.publishAfterSave) update(next);
       unsaved.current = false;
       setError('');
       setSyncStatus('Saved on this device');
       channel.current?.postMessage('changed');
       engine.current?.edited();
     } catch (e) {
+      if (options?.publishAfterSave) {
+        setError(
+          'Could not save this validation. Your score review remains open; retry when storage is available.',
+        );
+        throw e;
+      }
       unsaved.current = true;
       engine.current?.stop();
       setSyncStatus('Unsaved changes · export a copy');
@@ -97,6 +125,35 @@ export function useAlliance() {
     setError('');
     channel.current?.postMessage('changed');
   }
-  return { data, loading, error, setError, commit, reload, syncStatus, engine, db, storageFailure };
+  async function switchAlliance(expected: Dataset, request: AllianceTransition) {
+    scopeVersion.current++;
+    engine.current?.stop();
+    try {
+      const next = await transitionAlliance(expected, request);
+      unsaved.current = false;
+      update(next);
+      setError('');
+      setSyncStatus('Saved on this device');
+      channel.current?.postMessage({ type: 'alliance-switched' });
+      return next;
+    } catch (error) {
+      if (SYNC_PREVIEW) engine.current?.start();
+      throw error;
+    }
+  }
+  return {
+    data,
+    loading,
+    error,
+    setError,
+    commit,
+    reload,
+    syncStatus,
+    engine,
+    db,
+    storageFailure,
+    switchAlliance,
+  };
 }
-export type Commit = (data: Dataset) => Promise<Dataset>;
+export type Commit = (data: Dataset, options?: { publishAfterSave?: boolean }) => Promise<Dataset>;
+export type SwitchAlliance = (expected: Dataset, request: AllianceTransition) => Promise<Dataset>;

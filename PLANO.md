@@ -1,6 +1,6 @@
 # Gestor de alianças Marvel Snap — plano de implementação
 
-Versão consolidada: 28/10/2026. Estado: especificação do produto; versão de testes publicada. Consultar VALIDACAO.md para verificações e pendências.
+Versão consolidada: 29/10/2026. Estado: especificação do produto; versão de testes publicada. Consultar VALIDACAO.md para verificações e pendências.
 
 Este ficheiro define o produto, as decisões técnicas e a sequência de trabalho. TESTES_ACEITACAO.md contém os cenários verificáveis. ARRANQUE_CODEX.md é o pedido para iniciar o desenvolvimento e remete para estas especificações, sem as duplicar.
 
@@ -35,7 +35,7 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 
 | ID | Requisito |
 | --- | --- |
-| RF01 | Registar uma aliança já existente no jogo e começar sem conta, com dados persistidos no dispositivo. Uma aliança inicial por gestor. |
+| RF01 | Registar uma aliança já existente no jogo e começar sem conta, com dados persistidos no dispositivo. Uma aliança ativa de cada vez, com mudança e arquivos locais em RF24. |
 | RF02 | Registar jogadores com ID interno criado pela aplicação, nome atual, nomes anteriores, contacto social opcional e participações com entrada/saída. Não depender de um identificador do Marvel Snap. |
 | RF03 | Definir mínimo individual e meta da aliança, preservando os valores históricos por semana. |
 | RF04 | Ler localmente uma ou várias imagens selecionadas ou coladas da área de transferência, sem exigir ficheiros guardados para colagem. Propor nomes e pontos numa grelha de revisão, conservando as imagens como referência com zoom e deslocamento durante essa sessão. Sem entrada em massa por texto; permitir correções individuais antes de guardar. |
@@ -47,6 +47,7 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 | RF11 | Não impor limite de utilizadores no uso local nem bloquear operações locais por quota ou falha dos serviços remotos. |
 | RF12 | Preparar a arquitetura do MVP para reduzir chamadas e permitir futuros meios de sincronização, conforme a secção 9. |
 | RF20 | Comparar os nomes recolhidos com os jogadores registados, destacar nomes desconhecidos e nomes não encontrados na recolha, e permitir confirmar manualmente uma mudança de nome ou um novo jogador. Nunca alterar associações automaticamente. |
+| RF24 | Mudar de aliança nas Settings, escolhendo arquivar ou apagar os dados atuais. Mostrar aviso e exigir confirmação explícita. Criar o novo painel vazio, sem misturar jogadores/semanas. Permitir exportar, restaurar e apagar arquivos locais com proteção de substituição/eliminação. |
 
 ### 2.2. P1 — importante no MVP
 
@@ -71,7 +72,7 @@ P0 é essencial. P1 é importante e faz parte do MVP. P2 é uma evolução futur
 
 - Importação de vídeos guardados. A seleção/colagem de imagens com OCR local e a captura assistida compatível já pertencem ao MVP.
 - Meios de sincronização direta ou com armazenamento escolhido pelo utilizador, descritos na secção 9.
-- Várias alianças por gestor, gestão partilhada e permissões.
+- Várias alianças ativas em simultâneo, gestão partilhada e permissões. A mudança entre uma aliança ativa e arquivos locais já pertence a RF24 no MVP.
 - CSV, relatórios, gráficos, taxa de cumprimento e incumprimentos consecutivos.
 - Adaptação a outros jogos através de perfis próprios, depois de o fluxo Marvel Snap funcionar.
 
@@ -132,7 +133,9 @@ Uma semana pode ser validada explicitamente como incompleta, avaliando apenas os
 
 O fluxo de recolha usa imagens, não listas de texto: selecionar várias capturas ou colar imagens diretamente, executar OCR local e rever nomes/pontos antes de guardar. No PC compatível, a captura assistida recolhe imagens enquanto o gestor percorre a tabela. Assumir a disposição única Player / Cube / Bounty / Total e detetar as colunas pela posição, sem seletor de formato. A contribuição é Total; não a calcular a partir das outras colunas quando estiver ilegível. Usar Cube + Bounty apenas para assinalar uma leitura incoerente.
 
-Guardar um rascunho conserva as linhas pendentes, mas estas ainda não são resultados atribuídos. Validar guarda a revisão atual e valida a semana numa única operação local. Não validar uma semana vazia, mesmo como incompleta; zero registado é válido. Linhas pendentes ou totais divergentes têm de ser resolvidos/excluídos. Explicar os bloqueios no diálogo, permitir voltar à revisão e mostrar confirmação visível com a quantidade de resultados guardados e ligação à visão geral. Os totais da semana corrente já validada aparecem na visão geral; médias/incumprimentos continuam a depender do fim da semana.
+Guardar um rascunho conserva as linhas pendentes, mas estas ainda não são resultados atribuídos. A ação «Validate week» inicia a conferência; abrir/cancelar o diálogo, voltar à revisão ou falhar uma validação não valida a semana. Só a confirmação final guardada com sucesso altera o estado. A revisão atual e a validação são guardadas numa única operação local. Não validar uma semana vazia, mesmo como incompleta; zero registado é válido. Linhas pendentes ou totais divergentes têm de ser resolvidos/excluídos. Destacar campos em falta ou inválidos com texto e contorno, focar e deslocar para o primeiro. Nomes, pontos e associações são conferidos; hora de captura e contacto social opcionais não são erros. Se existirem resultados conhecidos, oferecer «Review incomplete week» para confirmar explicitamente a incompletude. Mostrar sucesso com quantidade guardada e ligação à visão geral. Os totais da semana corrente já validada aparecem na visão geral; médias/incumprimentos continuam a depender do fim da semana.
+
+Notas de revisão e correção de pontos são opcionais. Conservar sempre a revisão anterior e um texto automático quando a nota estiver vazia; não pedir um motivo para voltar a uma validação cancelada. O motivo de dispensa manual e o motivo de correção do mínimo histórico continuam obrigatórios.
 
 O atalho «Find week by date» usa uma data/hora local para selecionar a semana, sem alterar o momento da recolha. Mudar de semana com imagens ou revisão por guardar exige confirmação antes de descartar. Ao criar um jogador durante uma recolha histórica, a data de entrada proposta pertence à semana selecionada e exige conferência pelo gestor; não usar silenciosamente a semana atual. Resultados guardados fora das datas de participação continuam visíveis para correção.
 
@@ -176,11 +179,21 @@ Pontos recolhidos às 18:55 e introduzidos às 19:10 continuam a representar a o
 
 Os ficheiros multimédia servem de referência/processamento local e não são enviados nem conservados automaticamente no MVP. O utilizador pode guardar os originais por sua iniciativa.
 
+As leituras originais abrem através de um ícone de informação à direita dos pontos. Mostrar rótulos simples e consistentes como «Image 1» e «Image 2», incluindo referências, origem e visualização. Conservar nomes de ficheiros apenas nos metadados, sem os usar como rótulo principal.
+
+### 4.4. Mudança e arquivo de alianças
+
+Uma aliança ativa de cada vez neste navegador. «Change alliance» nas Settings pede o nome do novo painel, oferece arquivar (por defeito) ou apagar a aliança atual, mostra as consequências e exige uma caixa de confirmação antes da ação final. Cancelar mantém tudo. Uma simples edição do nome da aliança nas definições conserva os seus registos.
+
+Arquivar conserva o conjunto estruturado completo com os mesmos IDs, contactos, semanas, mínimos, dispensas e revisões. O novo painel começa com IDs próprios e sem jogadores/semanas. Cada arquivo pode ser exportado, restaurado ou apagado; restaurar exige escolher arquivar/apagar a aliança atual e confirmar. Apagar um arquivo tem aviso e confirmação próprios. Os ficheiros de backup anteriormente exportados e outros dispositivos não são apagados.
+
+A alteração é atómica: quota, confirmação desatualizada ou alterações de outra aba mantêm os dados originais. Avisar que todas as abas mudam de aliança e que as revisões por guardar devem ser guardadas primeiro; desmontar os formulários/recolhas antigos e recusar gravações de um contexto anterior. Não copiar credenciais nem filas de sincronização entre alianças. Manter os lembretes do dispositivo. Apagar remove também uma cópia de recuperação local que pertença à aliança eliminada; arquivar conserva a recuperação existente. Limpar os dados do navegador elimina os arquivos, pelo que a interface recomenda exportar cópias.
+
 ## 5. Transferência e sincronização
 
 ### 5.1. Transferência manual — obrigatória no MVP
 
-1. «Exportar dados» gera um JSON versionado com todos os dados estruturados: aliança, jogadores/IDs/nomes/contactos, participações, semanas/mínimos/metas, pontos, motivos de dispensa, recolhas, linhas pendentes, decisões de associação/mudança de nome, revisões e preferências gerais.
+1. «Export current alliance» gera um JSON versionado com todos os dados estruturados da aliança ativa: aliança, jogadores/IDs/nomes/contactos, participações, semanas/mínimos/metas, pontos, motivos de dispensa, recolhas, linhas pendentes, decisões de associação/mudança de nome, revisões e preferências gerais. Cada arquivo é exportado separadamente no mesmo formato, através de «Export archive».
 2. Incluir versão do formato, identificador do conjunto, data/hora da exportação e última alteração conhecida. Não incluir credenciais, sessões, chaves de recuperação ou subscrições de push.
 3. O utilizador transfere o ficheiro pelo meio que escolher e seleciona-o no outro dispositivo. A PWA lê e valida localmente, sem upload para o servidor. [File API](https://developer.mozilla.org/en-US/docs/Web/API/File_API/Using_files_from_web_applications)
 4. Mostrar pré-visualização com aliança, quantidades e datas. Num destino vazio, recuperar tudo.

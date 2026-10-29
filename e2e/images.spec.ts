@@ -99,9 +99,22 @@ test('AC09 AC55: repeated names with different totals need one explicit choice',
   await expect(page.getByText('Different totals in these images.', { exact: false })).toBeVisible();
   await page.getByRole('button', { name: /Use 2.?900 points/ }).click();
   await expect(page.getByLabel('Points', { exact: true })).toHaveValue('2900');
-  await page.getByText('Original observations', { exact: true }).click();
-  await expect(page.getByText(/earlier.png · 2.?700 points/)).toBeVisible();
-  await expect(page.getByText(/later.png · 2.?900 points/)).toBeVisible();
+  await expect(page.getByText('Original observations', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Score details · row 1', exact: true }).click();
+  const details = page.getByRole('dialog', { name: 'Score details', exact: true });
+  await expect(details.getByText(/Image 1 · 2.?700 points/)).toBeVisible();
+  await expect(details.getByText(/Image 2 · 2.?900 points/)).toBeVisible();
+  await expect(details).not.toContainText('.png');
+  await details.getByRole('button', { name: 'View image 2', exact: true }).click();
+  await expect(
+    page.getByRole('dialog', { name: 'Image preview' }).getByText('Image 2', { exact: true }),
+  ).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(details).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(
+    page.getByRole('button', { name: 'Score details · row 1', exact: true }),
+  ).toBeFocused();
 });
 test('AC56: assisted capture timestamps frames and releases sharing on stop and exit', async ({
   page,
